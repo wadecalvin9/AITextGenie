@@ -243,6 +243,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Chat Messages routes
   app.post('/api/chat/message', async (req, res) => {
+    // Try to authenticate user if token is provided, but don't require it (allow guests)
+    if (req.headers.authorization) {
+      try {
+        const authResult = await import('./supabaseAuth.js').then(m => m.authenticateToken(req.headers.authorization));
+        if (authResult) {
+          (req as any).user = authResult;
+        }
+      } catch (error) {
+        console.log('Auth failed for chat message, proceeding as guest');
+      }
+    }
     try {
       const { message, modelId, sessionId, isGuest } = req.body;
       

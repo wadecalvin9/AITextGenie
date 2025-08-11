@@ -134,6 +134,44 @@ An AI chat website with OpenRouter integration, admin panel for model management
 - **Fix**: Added proper timestamp validation and conversion to Date objects
 - **Location**: `client/src/components/chat/chat-interface.tsx` (loadSession function and timestamp rendering)
 
+### Response Saving Issues (Jan 11, 2025)
+- **Problem**: Responses not being saved when authenticated users send messages
+- **Fix**: Fixed authentication token validation and import issues in chat message endpoint
+- **Details**:
+  - Fixed incorrect import path (.js instead of .ts) in chat route
+  - Added missing `authenticateToken` function for optional authentication
+  - Resolved token validation failing and treating authenticated users as guests
+- **Locations**: 
+  - `server/routes.ts` (chat message endpoint authentication)
+  - `server/supabaseAuth.ts` (added `authenticateToken` helper function)
+
+### Chat Session Loading Authentication Fix (Jan 11, 2025)
+- **Problem**: "Failed to load chat session" error when clicking on chat history items
+- **Fix**: Updated frontend to use authenticated requests with proper headers
+- **Details**:
+  - Changed `loadSession` function to use `apiRequest` instead of plain `fetch`
+  - This ensures authentication tokens are included in session loading requests
+  - Resolved 401 unauthorized errors when accessing `/api/chat/sessions/:id/messages`
+- **Location**: `client/src/components/chat/chat-interface.tsx`
+
+### Centralized Configuration Management (Jan 11, 2025)
+- **Implementation**: Added comprehensive configuration management system for better maintainability
+- **Features**:
+  - Single source of truth for all environment variables in `server/config.ts`
+  - Type-safe configuration access throughout the application
+  - Automatic validation of required vs optional environment variables
+  - Clear documentation of all configuration options
+  - Default values for non-critical settings
+- **Files Created**:
+  - `server/config.ts` - Main configuration management
+  - `CONFIG.md` - Comprehensive configuration documentation
+  - `.env.example` - Template for all environment variables
+- **Files Updated**:
+  - `server/index.ts` - Added config validation on startup
+  - `server/db.ts` - Use centralized database configuration
+  - `server/supabaseAuth.ts` - Use centralized Supabase configuration
+  - `server/services/openrouter.ts` - Use centralized OpenRouter configuration
+
 ## Technical Details
 
 ### Session Restoration Flow

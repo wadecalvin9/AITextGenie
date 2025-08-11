@@ -1,3 +1,5 @@
+import { config } from '../config';
+
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
@@ -18,7 +20,7 @@ interface ChatCompletionResponse {
 }
 
 export class OpenRouterService {
-  private baseUrl = 'https://openrouter.ai/api/v1';
+  private baseUrl = config.openRouter.baseUrl;
 
   async createChatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     try {
@@ -27,7 +29,7 @@ export class OpenRouterService {
         headers: {
           'Authorization': `Bearer ${request.apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': process.env.REPLIT_DOMAINS?.split(',')[0] || 'http://localhost:5000',
+          'HTTP-Referer': config.openRouter.referer,
           'X-Title': 'AI Chat Platform',
         },
         body: JSON.stringify({

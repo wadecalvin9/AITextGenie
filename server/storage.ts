@@ -4,6 +4,7 @@ import {
   chatSessions,
   chatMessages,
   systemSettings,
+  uploadedFiles,
   type User,
   type UpsertUser,
   type AiModel,
@@ -14,6 +15,8 @@ import {
   type InsertChatMessage,
   type SystemSetting,
   type InsertSystemSetting,
+  type UploadedFile,
+  type InsertUploadedFile,
   type ChatSessionWithMessages,
   type ChatSessionWithUser,
 } from "@shared/schema";
@@ -49,6 +52,13 @@ export interface IStorage {
   getSystemSetting(key: string): Promise<SystemSetting | undefined>;
   setSystemSetting(setting: InsertSystemSetting): Promise<SystemSetting>;
   getSystemSettings(): Promise<SystemSetting[]>;
+  
+  // File operations
+  createUploadedFile(file: InsertUploadedFile): Promise<UploadedFile>;
+  getUploadedFilesByUserId(userId: string): Promise<UploadedFile[]>;
+  getUploadedFilesBySessionId(sessionId: string): Promise<UploadedFile[]>;
+  getUploadedFileById(id: string): Promise<UploadedFile | undefined>;
+  deleteUploadedFile(id: string): Promise<boolean>;
   
   // Admin operations
   getAllUsers(): Promise<User[]>;
@@ -275,6 +285,38 @@ export class DatabaseStorage implements IStorage {
     const estimatedCost = totalTokens * 0.00003; // Rough estimate
 
     return { totalTokens, totalRequests, estimatedCost };
+  }
+
+  // File operations
+  async createUploadedFile(fileData: InsertUploadedFile): Promise<UploadedFile> {
+    const [file] = await db.insert(uploadedFiles).values(fileData).returning();
+    return file;
+  }
+
+  async getUploadedFilesByUserId(userId: string): Promise<UploadedFile[]> {
+    return await db
+      .select()
+      .from(uploadedFiles)
+      .where(eq(uploadedFiles.userId, userId))
+      .orderBy(desc(uploadedFiles.createdAt));
+  }
+
+  async getUploadedFilesBySessionId(sessionId: string): Promise<UploadedFile[]> {
+    return await db
+      .select()
+      .from(uploadedFiles)
+      .where(eq(uploadedFiles.sessionId, sessionId))
+      .orderBy(desc(uploadedFiles.createdAt));
+  }
+
+  async getUploadedFileById(id: string): Promise<UploadedFile | undefined> {
+    const [file] = await db.select().from(uploadedFiles).where(eq(uploadedFiles.id, id));
+    return file;
+  }
+
+  async deleteUploadedFile(id: string): Promise<boolean> {
+    const result = await db.delete(uploadedFiles).where(eq(uploadedFiles.id, id));
+    return result.rowCount > 0;
   }
 }
 

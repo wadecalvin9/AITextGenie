@@ -8,10 +8,43 @@ import {
   insertChatSessionSchema,
   insertChatMessageSchema,
   insertSystemSettingSchema,
+  insertUploadedFileSchema,
 } from "@shared/schema";
 import { z } from "zod";
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs/promises';
 
 const openRouterService = new OpenRouterService();
+
+// Configure multer for file uploads
+const storage_multer = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error as Error, uploadDir);
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage_multer,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/', 'text/', 'application/pdf', 'application/json'];
+    const isAllowed = allowedTypes.some(type => file.mimetype.startsWith(type));
+    cb(null, isAllowed);
+  },
+});
 
 // Middleware to check admin role
 const isAdmin = async (req: any, res: any, next: any) => {
@@ -413,6 +446,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching admin stats:", error);
       res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  // File upload routes
+  app.post('/api/files/upload', isAuthenticated, upload.array('files', 5), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      const userId = req.user?.claims?.sub;
+      const sessionId = req.body.sessionId;
+
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: 'No files uploaded' });
+      }
+
+      const uploadedFiles = [];
+
+      for (const file of files) {
+        // Process file content for AI analysis
+        let processedContent = '';
+        
+        if (file.mimetype.startsWith('text/')) {
+          try {
+            processedContent = await fs.readFile(file.path, 'utf-8');
+          } catch (error) {
+            console.error('Error reading text file:', error);
+          }
+        } else if (file.mimetype === 'application/json') {
+          try {
+            const jsonContent = await fs.readFile(file.path, 'utf-8');
+            processedContent = JSON.stringify(JSON.parse(jsonContent), null, 2);
+          } catch (error) {
+            console.error('Error processing JSON file:', error);
+          }
+        }
+
+        const fileData = {
+          userId,
+          sessionId: sessionId || null,
+          fileName: file.filename,
+          originalName: file.originalname,
+          mimeType: file.mimetype,
+          fileSize: file.size,
+          filePath: file.path,
+          processedContent: processedContent || null,
+        };
+
+        const uploadedFile = await storage.createUploadedFile(fileData);
+        uploadedFiles.push(uploadedFile);
+      }
+
+      res.json({ 
+        message: 'Files uploaded successfully',
+        files: uploadedFiles 
+      });
+    } catch (error) {
+      console.error('File upload error:', error);
+      res.status(500).json({ message: 'Failed to upload files' });
+    }
+  });
+
+  // Get user's uploaded files
+  app.get('/api/files', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const files = await storage.getUploadedFilesByUserId(userId);
+      res.json(files);
+    } catch (error) {
+      console.error('Error fetching files:', error);
+      res.status(500).json({ message: 'Failed to fetch files' });
+    }
+  });
+
+  // Get files for a specific session
+  app.get('/api/files/session/:sessionId', isAuthenticated, async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const files = await storage.getUploadedFilesBySessionId(sessionId);
+      res.json(files);
+    } catch (error) {
+      console.error('Error fetching session files:', error);
+      res.status(500).json({ message: 'Failed to fetch session files' });
+    }
+  });
+
+  // Delete uploaded file
+  app.delete('/api/files/:id', isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.claims?.sub;
+      
+      const file = await storage.getUploadedFileById(id);
+      if (!file) {
+        return res.status(404).json({ message: 'File not found' });
+      }
+      
+      // Check if user owns the file
+      if (file.userId !== userId) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      // Delete file from filesystem
+      try {
+        await fs.unlink(file.filePath);
+      } catch (error) {
+        console.error('Error deleting file from filesystem:', error);
+      }
+
+      // Delete from database
+      const deleted = await storage.deleteUploadedFile(id);
+      if (deleted) {
+        res.json({ message: 'File deleted successfully' });
+      } else {
+        res.status(500).json({ message: 'Failed to delete file' });
+      }
+    } catch (error) {
+      console.error('Error deleting file:', error);
+      res.status(500).json({ message: 'Failed to delete file' });
     }
   });
 

@@ -68,14 +68,13 @@ export default function Home() {
                   </ul>
                 </div>
                 <FileUpload />
-                <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
                   <div className="flex items-start space-x-2">
-                    <i className="fas fa-info-circle text-yellow-600 mt-0.5"></i>
+                    <i className="fas fa-check-circle text-green-600 mt-0.5"></i>
                     <div>
-                      <h4 className="font-medium text-yellow-800">Coming Soon</h4>
-                      <p className="text-sm text-yellow-700 mt-1">
-                        File analysis integration with AI models is currently in development. 
-                        You can upload files now, and they'll be ready when this feature launches.
+                      <h4 className="font-medium text-green-800">File Upload Active</h4>
+                      <p className="text-sm text-green-700 mt-1">
+                        Upload files and reference them in your chat conversations. Text files and JSON files are automatically processed for AI analysis.
                       </p>
                     </div>
                   </div>

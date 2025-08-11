@@ -56,6 +56,16 @@ An AI chat website with OpenRouter integration, admin panel for model management
   - `shared/schema.ts` (added `onDelete: "set null"` to model foreign key)
   - `server/storage.ts` (updated `deleteAiModel` to set chat sessions' modelId to null before deletion)
 
+### File Upload Implementation
+- **Feature**: Complete file upload system with database storage and AI integration
+- **Implementation**: Added database schema, backend APIs with multer, and enhanced frontend component
+- **Locations**: 
+  - `shared/schema.ts` (added `uploadedFiles` table and relations)
+  - `server/storage.ts` (added file CRUD operations)
+  - `server/routes.ts` (added upload, list, and delete endpoints with multer)
+  - `client/src/components/features/file-upload.tsx` (enhanced with server integration)
+- **Features**: Drag-and-drop upload, file type validation, automatic text/JSON processing, file management
+
 ### UI Navigation Issues
 - **Problem**: Navigation state not properly reset when going back from admin to chat
 - **Fix**: Added proper page reload and state reset in "Back to Chat" button

@@ -163,7 +163,12 @@ An AI chat website with OpenRouter integration, admin panel for model management
   - Added proper CORS headers for API endpoints
   - Simplified routing to handle SPA properly with fallback to `index.html`
 - **Location**: `vercel.json` - now properly configured for full-stack deployment
-- **Status**: Deployment configuration fixed, ready for redeployment
+- **Status**: Final deployment fix applied - using rewrites instead of routes for better SPA handling
+- **Final Fix**: Changed from complex builds/routes to simple buildCommand with rewrites pattern:
+  - `buildCommand: "vite build"` - Direct frontend build
+  - `outputDirectory: "./dist/public"` - Serve from build output
+  - `rewrites` pattern to separate API (`/api/*`) from SPA routes (`/*`)
+  - This prevents Vercel from trying to execute server bundle as webpage
 
 ### Centralized Configuration Management (Jan 11, 2025)
 - **Implementation**: Added comprehensive configuration management system for better maintainability

@@ -1,0 +1,1345 @@
+var __defProp = Object.defineProperty;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+
+// shared/schema.ts
+var schema_exports = {};
+__export(schema_exports, {
+  aiModels: () => aiModels,
+  aiModelsRelations: () => aiModelsRelations,
+  chatMessages: () => chatMessages,
+  chatMessagesRelations: () => chatMessagesRelations,
+  chatSessions: () => chatSessions,
+  chatSessionsRelations: () => chatSessionsRelations,
+  insertAiModelSchema: () => insertAiModelSchema,
+  insertChatMessageSchema: () => insertChatMessageSchema,
+  insertChatSessionSchema: () => insertChatSessionSchema,
+  insertSystemSettingSchema: () => insertSystemSettingSchema,
+  insertUploadedFileSchema: () => insertUploadedFileSchema,
+  insertUserSchema: () => insertUserSchema,
+  sessions: () => sessions,
+  systemSettings: () => systemSettings,
+  uploadedFiles: () => uploadedFiles,
+  uploadedFilesRelations: () => uploadedFilesRelations,
+  users: () => users,
+  usersRelations: () => usersRelations
+});
+import { sql } from "drizzle-orm";
+import {
+  index,
+  jsonb,
+  pgTable,
+  timestamp,
+  varchar,
+  text,
+  boolean,
+  integer,
+  real
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+var sessions, users, aiModels, chatSessions, chatMessages, systemSettings, uploadedFiles, usersRelations, aiModelsRelations, chatSessionsRelations, chatMessagesRelations, uploadedFilesRelations, insertUserSchema, insertAiModelSchema, insertChatSessionSchema, insertChatMessageSchema, insertSystemSettingSchema, insertUploadedFileSchema;
+var init_schema = __esm({
+  "shared/schema.ts"() {
+    "use strict";
+    sessions = pgTable(
+      "sessions",
+      {
+        sid: varchar("sid").primaryKey(),
+        sess: jsonb("sess").notNull(),
+        expire: timestamp("expire").notNull()
+      },
+      (table) => [index("IDX_session_expire").on(table.expire)]
+    );
+    users = pgTable("users", {
+      id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+      email: varchar("email").unique(),
+      firstName: varchar("first_name"),
+      lastName: varchar("last_name"),
+      profileImageUrl: varchar("profile_image_url"),
+      role: varchar("role").default("user").notNull(),
+      // 'user' | 'admin'
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow()
+    });
+    aiModels = pgTable("ai_models", {
+      id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+      name: varchar("name").notNull(),
+      provider: varchar("provider").notNull(),
+      modelId: varchar("model_id").notNull().unique(),
+      // OpenRouter model ID
+      contextLength: integer("context_length").default(4096),
+      costPer1kTokens: real("cost_per_1k_tokens").default(0),
+      isActive: boolean("is_active").default(true),
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow()
+    });
+    chatSessions = pgTable("chat_sessions", {
+      id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+      userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+      title: varchar("title").notNull(),
+      modelId: varchar("model_id").references(() => aiModels.id, { onDelete: "set null" }),
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow()
+    });
+    chatMessages = pgTable("chat_messages", {
+      id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+      sessionId: varchar("session_id").references(() => chatSessions.id, { onDelete: "cascade" }).notNull(),
+      role: varchar("role").notNull(),
+      // 'user' | 'assistant'
+      content: text("content").notNull(),
+      tokenCount: integer("token_count").default(0),
+      createdAt: timestamp("created_at").defaultNow()
+    });
+    systemSettings = pgTable("system_settings", {
+      id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+      key: varchar("key").notNull().unique(),
+      value: text("value"),
+      createdAt: timestamp("created_at").defaultNow(),
+      updatedAt: timestamp("updated_at").defaultNow()
+    });
+    uploadedFiles = pgTable("uploaded_files", {
+      id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+      userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+      sessionId: varchar("session_id").references(() => chatSessions.id, { onDelete: "cascade" }),
+      fileName: varchar("file_name").notNull(),
+      originalName: varchar("original_name").notNull(),
+      mimeType: varchar("mime_type").notNull(),
+      fileSize: integer("file_size").notNull(),
+      filePath: varchar("file_path").notNull(),
+      processedContent: text("processed_content"),
+      // Extracted text content for AI processing
+      createdAt: timestamp("created_at").defaultNow()
+    });
+    usersRelations = relations(users, ({ many }) => ({
+      chatSessions: many(chatSessions)
+    }));
+    aiModelsRelations = relations(aiModels, ({ many }) => ({
+      chatSessions: many(chatSessions)
+    }));
+    chatSessionsRelations = relations(chatSessions, ({ one, many }) => ({
+      user: one(users, {
+        fields: [chatSessions.userId],
+        references: [users.id]
+      }),
+      model: one(aiModels, {
+        fields: [chatSessions.modelId],
+        references: [aiModels.id]
+      }),
+      messages: many(chatMessages)
+    }));
+    chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+      session: one(chatSessions, {
+        fields: [chatMessages.sessionId],
+        references: [chatSessions.id]
+      })
+    }));
+    uploadedFilesRelations = relations(uploadedFiles, ({ one }) => ({
+      user: one(users, {
+        fields: [uploadedFiles.userId],
+        references: [users.id]
+      }),
+      session: one(chatSessions, {
+        fields: [uploadedFiles.sessionId],
+        references: [chatSessions.id]
+      })
+    }));
+    insertUserSchema = createInsertSchema(users).omit({
+      id: true,
+      createdAt: true,
+      updatedAt: true
+    });
+    insertAiModelSchema = createInsertSchema(aiModels).omit({
+      id: true,
+      createdAt: true,
+      updatedAt: true
+    });
+    insertChatSessionSchema = createInsertSchema(chatSessions).omit({
+      id: true,
+      createdAt: true,
+      updatedAt: true
+    });
+    insertChatMessageSchema = createInsertSchema(chatMessages).omit({
+      id: true,
+      createdAt: true
+    });
+    insertSystemSettingSchema = createInsertSchema(systemSettings).omit({
+      id: true,
+      createdAt: true,
+      updatedAt: true
+    });
+    insertUploadedFileSchema = createInsertSchema(uploadedFiles).omit({
+      id: true,
+      createdAt: true
+    });
+  }
+});
+
+// server/config.ts
+function validateConfig() {
+  const required = [
+    "DATABASE_URL"
+  ];
+  const missing = required.filter((key) => !process.env[key]);
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(", ")}`);
+  }
+  const recommended = [
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "VITE_SUPABASE_URL",
+    "VITE_SUPABASE_ANON_KEY"
+  ];
+  const missingRecommended = recommended.filter((key) => !process.env[key]);
+  if (missingRecommended.length > 0) {
+    console.warn(`Warning: Missing recommended environment variables: ${missingRecommended.join(", ")}`);
+    console.warn("Some features may not work correctly without these variables.");
+  }
+}
+var config;
+var init_config = __esm({
+  "server/config.ts"() {
+    "use strict";
+    config = {
+      // Server Configuration
+      server: {
+        port: process.env.PORT || 5e3,
+        nodeEnv: process.env.NODE_ENV || "development"
+      },
+      // Database Configuration
+      database: {
+        url: process.env.DATABASE_URL
+      },
+      // Supabase Configuration
+      supabase: {
+        // Server-side configuration
+        url: process.env.SUPABASE_URL,
+        serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+        // Client-side configuration (VITE_ prefixed)
+        clientUrl: process.env.VITE_SUPABASE_URL,
+        anonKey: process.env.VITE_SUPABASE_ANON_KEY
+      },
+      // Replit Configuration
+      replit: {
+        domains: process.env.REPLIT_DOMAINS,
+        replId: process.env.REPL_ID,
+        issuerUrl: process.env.ISSUER_URL || "https://replit.com/oidc"
+      },
+      // Session Configuration
+      session: {
+        secret: process.env.SESSION_SECRET,
+        ttl: parseInt(process.env.SESSION_TTL || "86400000"),
+        // 24 hours in milliseconds
+        tableName: "sessions"
+      },
+      // OpenRouter API Configuration
+      openRouter: {
+        baseUrl: process.env.OPENROUTER_API_BASE_URL || "https://openrouter.ai/api/v1",
+        referer: process.env.REPLIT_DOMAINS?.split(",")[0] || "http://localhost:5000"
+      },
+      // Rate Limiting Configuration
+      rateLimit: {
+        max: parseInt(process.env.RATE_LIMIT_MAX || "100"),
+        windowMs: parseInt(process.env.RATE_LIMIT_WINDOW || "900000")
+        // 15 minutes
+      },
+      // File Upload Configuration
+      upload: {
+        maxFileSize: parseInt(process.env.MAX_FILE_SIZE || "10485760"),
+        // 10MB
+        uploadPath: process.env.UPLOAD_PATH || "./uploads",
+        allowedMimeTypes: [
+          "text/plain",
+          "text/csv",
+          "text/javascript",
+          "text/typescript",
+          "application/json",
+          "application/pdf",
+          "image/png",
+          "image/jpeg",
+          "image/gif",
+          "image/webp"
+        ]
+      },
+      // Default System Settings
+      defaults: {
+        allowGuests: true,
+        rateLimit: "100",
+        maxFileSize: "10MB",
+        defaultModel: null
+        // Will be set by admin
+      }
+    };
+  }
+});
+
+// server/db.ts
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-serverless";
+import ws from "ws";
+var pool, db;
+var init_db = __esm({
+  "server/db.ts"() {
+    "use strict";
+    init_schema();
+    init_config();
+    neonConfig.webSocketConstructor = ws;
+    if (!config.database.url) {
+      throw new Error(
+        "DATABASE_URL must be set. Did you forget to provision a database?"
+      );
+    }
+    pool = new Pool({ connectionString: config.database.url });
+    db = drizzle({ client: pool, schema: schema_exports });
+  }
+});
+
+// server/storage.ts
+import { eq, desc, sql as sql2 } from "drizzle-orm";
+var DatabaseStorage, storage;
+var init_storage = __esm({
+  "server/storage.ts"() {
+    "use strict";
+    init_schema();
+    init_db();
+    DatabaseStorage = class {
+      // User operations (IMPORTANT: mandatory for Replit Auth)
+      async getUser(id) {
+        const [user] = await db.select().from(users).where(eq(users.id, id));
+        return user;
+      }
+      async upsertUser(userData) {
+        const [user] = await db.insert(users).values(userData).onConflictDoUpdate({
+          target: users.id,
+          set: {
+            ...userData,
+            updatedAt: /* @__PURE__ */ new Date()
+          }
+        }).returning();
+        return user;
+      }
+      // AI Model operations
+      async getAiModels(activeOnly = false) {
+        const query = db.select().from(aiModels);
+        if (activeOnly) {
+          return await query.where(eq(aiModels.isActive, true)).orderBy(aiModels.name);
+        }
+        return await query.orderBy(aiModels.name);
+      }
+      async getAiModelById(id) {
+        const [model] = await db.select().from(aiModels).where(eq(aiModels.id, id));
+        return model;
+      }
+      async createAiModel(model) {
+        const [created] = await db.insert(aiModels).values(model).returning();
+        return created;
+      }
+      async updateAiModel(id, model) {
+        const [updated] = await db.update(aiModels).set({ ...model, updatedAt: /* @__PURE__ */ new Date() }).where(eq(aiModels.id, id)).returning();
+        return updated;
+      }
+      async deleteAiModel(id) {
+        try {
+          await db.update(chatSessions).set({ modelId: null }).where(eq(chatSessions.modelId, id));
+          const result = await db.delete(aiModels).where(eq(aiModels.id, id));
+          return result.rowCount > 0;
+        } catch (error) {
+          console.error("Error deleting model:", error);
+          throw error;
+        }
+      }
+      // Chat Session operations
+      async getChatSessionsByUserId(userId) {
+        const sessions2 = await db.select({
+          id: chatSessions.id,
+          userId: chatSessions.userId,
+          title: chatSessions.title,
+          modelId: chatSessions.modelId,
+          createdAt: chatSessions.createdAt,
+          updatedAt: chatSessions.updatedAt,
+          modelName: aiModels.name,
+          messageCount: sql2`cast(count(${chatMessages.id}) as int)`
+        }).from(chatSessions).leftJoin(aiModels, eq(chatSessions.modelId, aiModels.id)).leftJoin(chatMessages, eq(chatSessions.id, chatMessages.sessionId)).where(eq(chatSessions.userId, userId)).groupBy(chatSessions.id, aiModels.name).orderBy(desc(chatSessions.updatedAt));
+        return sessions2.map((session) => ({
+          ...session,
+          model: session.modelName ? { name: session.modelName } : void 0
+        }));
+      }
+      async getChatSessionById(id) {
+        const [session] = await db.select().from(chatSessions).leftJoin(aiModels, eq(chatSessions.modelId, aiModels.id)).where(eq(chatSessions.id, id));
+        if (!session) return void 0;
+        const messages = await db.select().from(chatMessages).where(eq(chatMessages.sessionId, id)).orderBy(chatMessages.createdAt);
+        return {
+          ...session.chat_sessions,
+          model: session.ai_models || void 0,
+          messages
+        };
+      }
+      async createChatSession(session) {
+        const [created] = await db.insert(chatSessions).values(session).returning();
+        return created;
+      }
+      async updateChatSession(id, session) {
+        const [updated] = await db.update(chatSessions).set({ ...session, updatedAt: /* @__PURE__ */ new Date() }).where(eq(chatSessions.id, id)).returning();
+        return updated;
+      }
+      async deleteChatSession(id) {
+        const result = await db.delete(chatSessions).where(eq(chatSessions.id, id));
+        return result.rowCount > 0;
+      }
+      // Chat Message operations
+      async getMessagesBySessionId(sessionId) {
+        return await db.select().from(chatMessages).where(eq(chatMessages.sessionId, sessionId)).orderBy(chatMessages.createdAt);
+      }
+      async createChatMessage(message) {
+        const [created] = await db.insert(chatMessages).values(message).returning();
+        return created;
+      }
+      async deleteMessagesBySessionId(sessionId) {
+        const result = await db.delete(chatMessages).where(eq(chatMessages.sessionId, sessionId));
+        return result.rowCount > 0;
+      }
+      // System Settings operations
+      async getSystemSetting(key) {
+        const [setting] = await db.select().from(systemSettings).where(eq(systemSettings.key, key));
+        return setting;
+      }
+      async setSystemSetting(setting) {
+        const [created] = await db.insert(systemSettings).values(setting).onConflictDoUpdate({
+          target: systemSettings.key,
+          set: { value: setting.value, updatedAt: /* @__PURE__ */ new Date() }
+        }).returning();
+        return created;
+      }
+      async getSystemSettings() {
+        return await db.select().from(systemSettings);
+      }
+      // Admin operations
+      async getAllUsers() {
+        return await db.select().from(users).orderBy(desc(users.createdAt));
+      }
+      async updateUserRole(userId, role) {
+        const [updated] = await db.update(users).set({ role, updatedAt: /* @__PURE__ */ new Date() }).where(eq(users.id, userId)).returning();
+        return updated;
+      }
+      async getUserStats() {
+        const [stats] = await db.select({
+          totalUsers: sql2`cast(count(*) as int)`,
+          adminUsers: sql2`cast(count(*) filter (where role = 'admin') as int)`
+        }).from(users);
+        return {
+          totalUsers: stats?.totalUsers || 0,
+          activeUsers: stats?.totalUsers || 0,
+          // Simplified for now
+          adminUsers: stats?.adminUsers || 0
+        };
+      }
+      async getUsageStats() {
+        const [stats] = await db.select({
+          totalTokens: sql2`cast(coalesce(sum(token_count), 0) as int)`,
+          totalRequests: sql2`cast(count(*) as int)`
+        }).from(chatMessages).where(sql2`created_at >= date_trunc('month', current_date)`);
+        const totalTokens = stats?.totalTokens || 0;
+        const totalRequests = stats?.totalRequests || 0;
+        const estimatedCost = totalTokens * 3e-5;
+        return { totalTokens, totalRequests, estimatedCost };
+      }
+      // File operations
+      async createUploadedFile(fileData) {
+        const [file] = await db.insert(uploadedFiles).values(fileData).returning();
+        return file;
+      }
+      async getUploadedFilesByUserId(userId) {
+        return await db.select().from(uploadedFiles).where(eq(uploadedFiles.userId, userId)).orderBy(desc(uploadedFiles.createdAt));
+      }
+      async getUploadedFilesBySessionId(sessionId) {
+        return await db.select().from(uploadedFiles).where(eq(uploadedFiles.sessionId, sessionId)).orderBy(desc(uploadedFiles.createdAt));
+      }
+      async getUploadedFileById(id) {
+        const [file] = await db.select().from(uploadedFiles).where(eq(uploadedFiles.id, id));
+        return file;
+      }
+      async deleteUploadedFile(id) {
+        const result = await db.delete(uploadedFiles).where(eq(uploadedFiles.id, id));
+        return result.rowCount > 0;
+      }
+    };
+    storage = new DatabaseStorage();
+  }
+});
+
+// server/supabaseAuth.ts
+var supabaseAuth_exports = {};
+__export(supabaseAuth_exports, {
+  authenticateToken: () => authenticateToken,
+  isAuthenticated: () => isAuthenticated,
+  setupAuth: () => setupAuth,
+  supabase: () => supabase
+});
+import { createClient } from "@supabase/supabase-js";
+async function setupAuth(app2) {
+  app2.get("/api/auth/user", isAuthenticated, async (req, res) => {
+    try {
+      const user = await storage.getUser(req.user.id);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+  app2.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { email, password, firstName, lastName } = req.body;
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName
+          }
+        }
+      });
+      if (error) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.json({
+        message: "User created successfully",
+        user: data.user,
+        session: data.session
+      });
+    } catch (error) {
+      console.error("Signup error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.post("/api/auth/signin", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      if (error) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.json({
+        message: "Signed in successfully",
+        user: data.user,
+        session: data.session
+      });
+    } catch (error) {
+      console.error("Signin error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.post("/api/auth/signout", async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.substring(7);
+        await supabase.auth.signOut();
+      }
+      res.json({ message: "Signed out successfully" });
+    } catch (error) {
+      console.error("Signout error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  app2.post("/api/auth/refresh", async (req, res) => {
+    try {
+      const { refresh_token } = req.body;
+      const { data, error } = await supabase.auth.refreshSession({
+        refresh_token
+      });
+      if (error) {
+        return res.status(400).json({ message: error.message });
+      }
+      res.json({
+        message: "Token refreshed successfully",
+        session: data.session
+      });
+    } catch (error) {
+      console.error("Refresh token error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+}
+var supabase, isAuthenticated, authenticateToken;
+var init_supabaseAuth = __esm({
+  "server/supabaseAuth.ts"() {
+    "use strict";
+    init_storage();
+    init_config();
+    if (!config.supabase.url) {
+      throw new Error("SUPABASE_URL environment variable is required");
+    }
+    if (!config.supabase.serviceRoleKey) {
+      throw new Error("SUPABASE_SERVICE_ROLE_KEY environment variable is required");
+    }
+    supabase = createClient(
+      config.supabase.url,
+      config.supabase.serviceRoleKey
+    );
+    isAuthenticated = async (req, res, next) => {
+      try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+          return res.status(401).json({ message: "Unauthorized - No token provided" });
+        }
+        const token = authHeader.substring(7);
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (error || !user) {
+          return res.status(401).json({ message: "Unauthorized - Invalid token" });
+        }
+        req.user = {
+          id: user.id,
+          email: user.email,
+          ...user.user_metadata
+        };
+        await storage.upsertUser({
+          id: user.id,
+          email: user.email || "",
+          firstName: user.user_metadata?.first_name || "",
+          lastName: user.user_metadata?.last_name || "",
+          profileImageUrl: user.user_metadata?.avatar_url || null
+        });
+        next();
+      } catch (error) {
+        console.error("Authentication error:", error);
+        res.status(500).json({ message: "Authentication service error" });
+      }
+    };
+    authenticateToken = async (authHeader) => {
+      try {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+          return null;
+        }
+        const token = authHeader.substring(7);
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (error || !user) {
+          return null;
+        }
+        await storage.upsertUser({
+          id: user.id,
+          email: user.email || "",
+          firstName: user.user_metadata?.first_name || "",
+          lastName: user.user_metadata?.last_name || "",
+          profileImageUrl: user.user_metadata?.avatar_url || null
+        });
+        return {
+          id: user.id,
+          email: user.email,
+          ...user.user_metadata
+        };
+      } catch (error) {
+        console.error("Token authentication error:", error);
+        return null;
+      }
+    };
+  }
+});
+
+// server/index.ts
+import express2 from "express";
+
+// server/routes.ts
+init_storage();
+init_supabaseAuth();
+import { createServer } from "http";
+
+// server/services/openrouter.ts
+init_config();
+var OpenRouterService = class {
+  baseUrl = config.openRouter.baseUrl;
+  async createChatCompletion(request) {
+    try {
+      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${request.apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": config.openRouter.referer,
+          "X-Title": "AI Chat Platform"
+        },
+        body: JSON.stringify({
+          model: request.model,
+          messages: request.messages,
+          max_tokens: request.maxTokens || 1e3,
+          temperature: request.temperature || 0.7
+        })
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`OpenRouter API error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+      }
+      const data = await response.json();
+      if (!data.choices || data.choices.length === 0) {
+        throw new Error("No response from OpenRouter API");
+      }
+      const choice = data.choices[0];
+      const content = choice.message?.content || "";
+      const tokenCount = data.usage?.total_tokens || 0;
+      return {
+        content,
+        tokenCount,
+        model: request.model
+      };
+    } catch (error) {
+      console.error("OpenRouter API error:", error);
+      throw error;
+    }
+  }
+  async getAvailableModels(apiKey) {
+    try {
+      const response = await fetch(`${this.baseUrl}/models`, {
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`OpenRouter API error: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.data || [];
+    } catch (error) {
+      console.error("Error fetching OpenRouter models:", error);
+      throw error;
+    }
+  }
+};
+
+// server/routes.ts
+init_schema();
+import multer from "multer";
+import path from "path";
+import fs from "fs/promises";
+var openRouterService = new OpenRouterService();
+var storage_multer = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), "uploads");
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error, uploadDir);
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+var upload = multer({
+  storage: storage_multer,
+  limits: {
+    fileSize: 10 * 1024 * 1024
+    // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ["image/", "text/", "application/pdf", "application/json"];
+    const isAllowed = allowedTypes.some((type) => file.mimetype.startsWith(type));
+    cb(null, isAllowed);
+  }
+});
+var isAdmin = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    next();
+  } catch (error) {
+    console.error("Admin check error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+async function registerRoutes(app2) {
+  await setupAuth(app2);
+  app2.get("/api/models", async (req, res) => {
+    try {
+      const activeOnly = req.query.active === "true";
+      const models = await storage.getAiModels(activeOnly);
+      res.json(models);
+    } catch (error) {
+      console.error("Error fetching models:", error);
+      res.status(500).json({ message: "Failed to fetch models" });
+    }
+  });
+  app2.get("/api/openrouter/models", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const apiKeySetting = await storage.getSystemSetting("openrouter_api_key");
+      if (!apiKeySetting?.value) {
+        return res.status(400).json({ message: "OpenRouter API key not configured" });
+      }
+      const models = await openRouterService.getAvailableModels(apiKeySetting.value);
+      res.json(models);
+    } catch (error) {
+      console.error("Error fetching OpenRouter models:", error);
+      res.status(500).json({ message: "Failed to fetch OpenRouter models" });
+    }
+  });
+  app2.post("/api/models", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const modelData = insertAiModelSchema.parse(req.body);
+      const model = await storage.createAiModel(modelData);
+      res.json(model);
+    } catch (error) {
+      console.error("Error creating model:", error);
+      res.status(400).json({ message: "Failed to create model" });
+    }
+  });
+  app2.put("/api/models/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const modelData = insertAiModelSchema.partial().parse(req.body);
+      const model = await storage.updateAiModel(id, modelData);
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      res.json(model);
+    } catch (error) {
+      console.error("Error updating model:", error);
+      res.status(400).json({ message: "Failed to update model" });
+    }
+  });
+  app2.delete("/api/models/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const success = await storage.deleteAiModel(id);
+      if (!success) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting model:", error);
+      res.status(500).json({ message: "Failed to delete model" });
+    }
+  });
+  app2.get("/api/chat/sessions", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const sessions2 = await storage.getChatSessionsByUserId(userId);
+      res.json(sessions2);
+    } catch (error) {
+      console.error("Error fetching chat sessions:", error);
+      res.status(500).json({ message: "Failed to fetch chat sessions" });
+    }
+  });
+  app2.get("/api/chat/sessions/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const session = await storage.getChatSessionById(id);
+      if (!session) {
+        return res.status(404).json({ message: "Chat session not found" });
+      }
+      const userId = req.user.id;
+      if (session.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      res.json(session);
+    } catch (error) {
+      console.error("Error fetching chat session:", error);
+      res.status(500).json({ message: "Failed to fetch chat session" });
+    }
+  });
+  app2.get("/api/chat/sessions/:id/messages", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const session = await storage.getChatSessionById(id);
+      if (!session) {
+        return res.status(404).json({ message: "Chat session not found" });
+      }
+      const userId = req.user.id;
+      if (session.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      const messages = await storage.getMessagesBySessionId(id);
+      res.json({
+        title: session.title,
+        modelId: session.modelId,
+        messages: messages || []
+      });
+    } catch (error) {
+      console.error("Error fetching session messages:", error);
+      res.status(500).json({ message: "Failed to fetch session messages" });
+    }
+  });
+  app2.post("/api/chat/sessions", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const sessionData = insertChatSessionSchema.parse({
+        ...req.body,
+        userId
+      });
+      const session = await storage.createChatSession(sessionData);
+      res.json(session);
+    } catch (error) {
+      console.error("Error creating chat session:", error);
+      res.status(400).json({ message: "Failed to create chat session" });
+    }
+  });
+  app2.delete("/api/chat/sessions/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      const session = await storage.getChatSessionById(id);
+      if (!session || session.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      const success = await storage.deleteChatSession(id);
+      if (!success) {
+        return res.status(404).json({ message: "Chat session not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting chat session:", error);
+      res.status(500).json({ message: "Failed to delete chat session" });
+    }
+  });
+  app2.post("/api/chat/message", async (req, res) => {
+    if (req.headers.authorization) {
+      try {
+        const { authenticateToken: authenticateToken2 } = await Promise.resolve().then(() => (init_supabaseAuth(), supabaseAuth_exports));
+        const authResult = await authenticateToken2(req.headers.authorization);
+        if (authResult) {
+          req.user = authResult;
+        }
+      } catch (error) {
+        console.log("Auth failed for chat message, proceeding as guest");
+      }
+    }
+    try {
+      const { message, modelId, sessionId, isGuest } = req.body;
+      if (!message || !modelId) {
+        return res.status(400).json({ message: "Message and model ID are required" });
+      }
+      const apiKeySetting = await storage.getSystemSetting("openrouter_api_key");
+      if (!apiKeySetting?.value) {
+        return res.status(500).json({ message: "OpenRouter API key not configured" });
+      }
+      const model = await storage.getAiModelById(modelId);
+      if (!model) {
+        return res.status(404).json({ message: "Model not found" });
+      }
+      let chatSessionId = sessionId;
+      if (!isGuest && req.user?.id) {
+        const userId = req.user.id;
+        if (!sessionId) {
+          const session = await storage.createChatSession({
+            userId,
+            title: message.slice(0, 50) + (message.length > 50 ? "..." : ""),
+            modelId
+          });
+          chatSessionId = session.id;
+        }
+        await storage.createChatMessage({
+          sessionId: chatSessionId,
+          role: "user",
+          content: message,
+          tokenCount: Math.ceil(message.length / 4)
+          // Rough token estimate
+        });
+      }
+      let messages = [{ role: "user", content: message }];
+      if (chatSessionId) {
+        const sessionMessages = await storage.getMessagesBySessionId(chatSessionId);
+        messages = sessionMessages.map((msg) => ({
+          role: msg.role,
+          content: msg.content
+        }));
+        messages.push({ role: "user", content: message });
+      }
+      const response = await openRouterService.createChatCompletion({
+        model: model.modelId,
+        messages,
+        apiKey: apiKeySetting.value
+      });
+      if (!isGuest && chatSessionId) {
+        await storage.createChatMessage({
+          sessionId: chatSessionId,
+          role: "assistant",
+          content: response.content,
+          tokenCount: response.tokenCount
+        });
+      }
+      res.json({
+        content: response.content,
+        sessionId: chatSessionId,
+        tokenCount: response.tokenCount
+      });
+    } catch (error) {
+      console.error("Error processing chat message:", error);
+      res.status(500).json({ message: "Failed to process message" });
+    }
+  });
+  app2.get("/api/openrouter/models", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const apiKeySetting = await storage.getSystemSetting("openrouter_api_key");
+      if (!apiKeySetting?.value) {
+        return res.status(400).json({ error: "OpenRouter API key not configured" });
+      }
+      const response = await fetch("https://openrouter.ai/api/v1/models", {
+        headers: {
+          "Authorization": `Bearer ${apiKeySetting.value}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch OpenRouter models");
+      }
+      const data = await response.json();
+      res.json(data.data || []);
+    } catch (error) {
+      console.error("Error fetching OpenRouter models:", error);
+      res.status(500).json({ error: "Failed to fetch models" });
+    }
+  });
+  app2.get("/api/settings", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getSystemSettings();
+      const sanitizedSettings = settings.map((setting) => ({
+        ...setting,
+        value: setting.key.includes("key") ? "****" : setting.value
+      }));
+      res.json(sanitizedSettings);
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+  app2.post("/api/settings", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const settingData = insertSystemSettingSchema.parse(req.body);
+      const setting = await storage.setSystemSetting(settingData);
+      res.json(setting);
+    } catch (error) {
+      console.error("Error saving setting:", error);
+      res.status(400).json({ message: "Failed to save setting" });
+    }
+  });
+  app2.get("/api/settings/public", async (req, res) => {
+    try {
+      const settings = await storage.getSystemSettings();
+      const publicSettings = settings.filter((setting) => !setting.key.includes("key") && !setting.key.includes("secret")).reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {});
+      res.json(publicSettings);
+    } catch (error) {
+      console.error("Error fetching public settings:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+  app2.get("/api/admin/users", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const users2 = await storage.getAllUsers();
+      res.json(users2);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+  app2.put("/api/admin/users/:id/role", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+      if (!["user", "admin"].includes(role)) {
+        return res.status(400).json({ message: "Invalid role" });
+      }
+      const user = await storage.updateUserRole(id, role);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+  app2.get("/api/admin/stats", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const [userStats, usageStats] = await Promise.all([
+        storage.getUserStats(),
+        storage.getUsageStats()
+      ]);
+      res.json({ ...userStats, ...usageStats });
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+  app2.post("/api/files/upload", isAuthenticated, upload.array("files", 5), async (req, res) => {
+    try {
+      const files = req.files;
+      const userId = req.user?.id;
+      const sessionId = req.body.sessionId;
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "No files uploaded" });
+      }
+      const uploadedFiles2 = [];
+      for (const file of files) {
+        let processedContent = "";
+        if (file.mimetype.startsWith("text/")) {
+          try {
+            processedContent = await fs.readFile(file.path, "utf-8");
+          } catch (error) {
+            console.error("Error reading text file:", error);
+          }
+        } else if (file.mimetype === "application/json") {
+          try {
+            const jsonContent = await fs.readFile(file.path, "utf-8");
+            processedContent = JSON.stringify(JSON.parse(jsonContent), null, 2);
+          } catch (error) {
+            console.error("Error processing JSON file:", error);
+          }
+        }
+        const fileData = {
+          userId,
+          sessionId: sessionId || null,
+          fileName: file.filename,
+          originalName: file.originalname,
+          mimeType: file.mimetype,
+          fileSize: file.size,
+          filePath: file.path,
+          processedContent: processedContent || null
+        };
+        const uploadedFile = await storage.createUploadedFile(fileData);
+        uploadedFiles2.push(uploadedFile);
+      }
+      res.json({
+        message: "Files uploaded successfully",
+        files: uploadedFiles2
+      });
+    } catch (error) {
+      console.error("File upload error:", error);
+      res.status(500).json({ message: "Failed to upload files" });
+    }
+  });
+  app2.get("/api/files", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const files = await storage.getUploadedFilesByUserId(userId);
+      res.json(files);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+      res.status(500).json({ message: "Failed to fetch files" });
+    }
+  });
+  app2.get("/api/files/session/:sessionId", isAuthenticated, async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const files = await storage.getUploadedFilesBySessionId(sessionId);
+      res.json(files);
+    } catch (error) {
+      console.error("Error fetching session files:", error);
+      res.status(500).json({ message: "Failed to fetch session files" });
+    }
+  });
+  app2.delete("/api/files/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.id;
+      const file = await storage.getUploadedFileById(id);
+      if (!file) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      if (file.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      try {
+        await fs.unlink(file.filePath);
+      } catch (error) {
+        console.error("Error deleting file from filesystem:", error);
+      }
+      const deleted = await storage.deleteUploadedFile(id);
+      if (deleted) {
+        res.json({ message: "File deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete file" });
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      res.status(500).json({ message: "Failed to delete file" });
+    }
+  });
+  app2.get("/health", (req, res) => {
+    res.json({ status: "healthy", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+  });
+  app2.get("/api/health", (req, res) => {
+    res.json({ status: "healthy", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
+  });
+  const httpServer = createServer(app2);
+  return httpServer;
+}
+
+// server/vite.ts
+import express from "express";
+import fs2 from "fs";
+import path3 from "path";
+import { createServer as createViteServer, createLogger } from "vite";
+
+// vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path2 from "path";
+import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+var vite_config_default = defineConfig({
+  plugins: [
+    react(),
+    runtimeErrorOverlay(),
+    ...process.env.NODE_ENV !== "production" && process.env.REPL_ID !== void 0 ? [
+      await import("@replit/vite-plugin-cartographer").then(
+        (m) => m.cartographer()
+      )
+    ] : []
+  ],
+  resolve: {
+    alias: {
+      "@": path2.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path2.resolve(import.meta.dirname, "shared"),
+      "@assets": path2.resolve(import.meta.dirname, "attached_assets")
+    }
+  },
+  root: path2.resolve(import.meta.dirname, "client"),
+  build: {
+    outDir: path2.resolve(import.meta.dirname, "dist/public"),
+    emptyOutDir: true
+  },
+  server: {
+    fs: {
+      strict: true,
+      deny: ["**/.*"]
+    }
+  }
+});
+
+// server/vite.ts
+import { nanoid } from "nanoid";
+var viteLogger = createLogger();
+function log(message, source = "express") {
+  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
+async function setupVite(app2, server) {
+  const serverOptions = {
+    middlewareMode: true,
+    hmr: { server },
+    allowedHosts: true
+  };
+  const vite = await createViteServer({
+    ...vite_config_default,
+    configFile: false,
+    customLogger: {
+      ...viteLogger,
+      error: (msg, options) => {
+        viteLogger.error(msg, options);
+        process.exit(1);
+      }
+    },
+    server: serverOptions,
+    appType: "custom"
+  });
+  app2.use(vite.middlewares);
+  app2.use("*", async (req, res, next) => {
+    const url = req.originalUrl;
+    try {
+      const clientTemplate = path3.resolve(
+        import.meta.dirname,
+        "..",
+        "client",
+        "index.html"
+      );
+      let template = await fs2.promises.readFile(clientTemplate, "utf-8");
+      template = template.replace(
+        `src="/src/main.tsx"`,
+        `src="/src/main.tsx?v=${nanoid()}"`
+      );
+      const page = await vite.transformIndexHtml(url, template);
+      res.status(200).set({ "Content-Type": "text/html" }).end(page);
+    } catch (e) {
+      vite.ssrFixStacktrace(e);
+      next(e);
+    }
+  });
+}
+function serveStatic(app2) {
+  const distPath = path3.resolve(import.meta.dirname, "public");
+  if (!fs2.existsSync(distPath)) {
+    throw new Error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`
+    );
+  }
+  app2.use(express.static(distPath));
+  app2.use("*", (_req, res) => {
+    res.sendFile(path3.resolve(distPath, "index.html"));
+  });
+}
+
+// server/index.ts
+init_config();
+var app = express2();
+app.use(express2.json());
+app.use(express2.urlencoded({ extended: false }));
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path4 = req.path;
+  let capturedJsonResponse = void 0;
+  const originalResJson = res.json;
+  res.json = function(bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path4.startsWith("/api")) {
+      let logLine = `${req.method} ${path4} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "\u2026";
+      }
+      log(logLine);
+    }
+  });
+  next();
+});
+(async () => {
+  validateConfig();
+  const server = await registerRoutes(app);
+  app.use((err, _req, res, _next) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+    res.status(status).json({ message });
+    throw err;
+  });
+  if (app.get("env") === "development") {
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+  const port = config.server.port;
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+})();

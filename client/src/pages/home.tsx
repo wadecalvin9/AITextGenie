@@ -109,52 +109,52 @@ export default function Home() {
       </div>
       
       {/* Mobile Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200">
-        <div className="flex items-center justify-around py-2">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 safe-area-inset-bottom">
+        <div className="flex items-center justify-around py-2 px-2">
           <button
             onClick={() => setCurrentView('chat')}
-            className={`flex flex-col items-center p-2 ${
+            className={`flex flex-col items-center p-1.5 min-w-0 ${
               currentView === 'chat' ? 'text-blue-600' : 'text-slate-600'
             }`}
           >
-            <i className="fas fa-comments text-lg mb-1"></i>
-            <span className="text-xs">Chat</span>
+            <i className="fas fa-comments text-base mb-0.5"></i>
+            <span className="text-xs truncate">Chat</span>
           </button>
           <button
             onClick={() => setCurrentView('history')}
-            className={`flex flex-col items-center p-2 ${
+            className={`flex flex-col items-center p-1.5 min-w-0 ${
               currentView === 'history' ? 'text-blue-600' : 'text-slate-600'
             }`}
           >
-            <i className="fas fa-history text-lg mb-1"></i>
-            <span className="text-xs">History</span>
+            <i className="fas fa-history text-base mb-0.5"></i>
+            <span className="text-xs truncate">History</span>
           </button>
           <button
             onClick={() => setCurrentView('compare')}
-            className={`flex flex-col items-center p-2 ${
+            className={`flex flex-col items-center p-1.5 min-w-0 ${
               currentView === 'compare' ? 'text-blue-600' : 'text-slate-600'
             }`}
           >
-            <i className="fas fa-balance-scale text-lg mb-1"></i>
-            <span className="text-xs">Compare</span>
+            <i className="fas fa-balance-scale text-base mb-0.5"></i>
+            <span className="text-xs truncate">Compare</span>
           </button>
           <button
             onClick={() => setCurrentView('files')}
-            className={`flex flex-col items-center p-2 ${
+            className={`flex flex-col items-center p-1.5 min-w-0 ${
               currentView === 'files' ? 'text-blue-600' : 'text-slate-600'
             }`}
           >
-            <i className="fas fa-file-upload text-lg mb-1"></i>
-            <span className="text-xs">Files</span>
+            <i className="fas fa-file-upload text-base mb-0.5"></i>
+            <span className="text-xs truncate">Files</span>
           </button>
           <button
             onClick={() => setCurrentView('models')}
-            className={`flex flex-col items-center p-2 ${
+            className={`flex flex-col items-center p-1.5 min-w-0 ${
               currentView === 'models' ? 'text-blue-600' : 'text-slate-600'
             }`}
           >
-            <i className="fas fa-brain text-lg mb-1"></i>
-            <span className="text-xs">Models</span>
+            <i className="fas fa-brain text-base mb-0.5"></i>
+            <span className="text-xs truncate">Models</span>
           </button>
         </div>
       </div>

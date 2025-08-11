@@ -150,6 +150,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get session messages endpoint
+  app.get('/api/chat/sessions/:id/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const session = await storage.getChatSessionById(id);
+      if (!session) {
+        return res.status(404).json({ message: "Chat session not found" });
+      }
+      
+      // Check if user owns this session
+      const userId = req.user.claims.sub;
+      if (session.userId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get messages for this session
+      const messages = await storage.getMessagesBySessionId(id);
+      
+      res.json({
+        title: session.title,
+        modelId: session.modelId,
+        messages: messages || []
+      });
+    } catch (error) {
+      console.error("Error fetching session messages:", error);
+      res.status(500).json({ message: "Failed to fetch session messages" });
+    }
+  });
+
   app.post('/api/chat/sessions', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

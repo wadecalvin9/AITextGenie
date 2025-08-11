@@ -27,7 +27,7 @@ export default function ChatHistory() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: sessions = [], isLoading: sessionsLoading } = useQuery({
+  const { data: sessions = [], isLoading: sessionsLoading } = useQuery<any[]>({
     queryKey: ['/api/chat/sessions'],
     enabled: isAuthenticated,
   });
@@ -147,11 +147,8 @@ export default function ChatHistory() {
                 key={session.id}
                 className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => {
-                  // TODO: Implement opening chat session
-                  toast({
-                    title: "Feature Coming Soon",
-                    description: "Opening chat sessions will be implemented soon.",
-                  });
+                  // Navigate to chat with session context
+                  window.location.href = `/?sessionId=${session.id}`;
                 }}
               >
                 <div className="flex items-start justify-between">

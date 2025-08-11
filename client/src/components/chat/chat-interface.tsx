@@ -27,10 +27,20 @@ export default function ChatInterface() {
   const [inputMessage, setInputMessage] = useState("");
   const [selectedModel, setSelectedModel] = useState("");
   const [currentSession, setCurrentSession] = useState<string | null>(null);
+  const [sessionTitle, setSessionTitle] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check for sessionId in URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('sessionId');
+    if (sessionId && isAuthenticated) {
+      loadSession(sessionId);
+    }
+  }, [isAuthenticated]);
 
   // Get available models
   const { data: models = [] } = useQuery({
@@ -48,6 +58,34 @@ export default function ChatInterface() {
       setSelectedModel(models[0].id);
     }
   }, [models, selectedModel]);
+
+  // Load session function
+  const loadSession = async (sessionId: string) => {
+    try {
+      const response = await fetch(`/api/chat/sessions/${sessionId}/messages`);
+      if (response.ok) {
+        const sessionData = await response.json();
+        setMessages(sessionData.messages || []);
+        setCurrentSession(sessionId);
+        setSessionTitle(sessionData.title || "Restored Chat");
+        if (sessionData.modelId) {
+          setSelectedModel(sessionData.modelId);
+        }
+        toast({
+          title: "Session Loaded",
+          description: `Restored chat session: ${sessionData.title || "Unnamed Session"}`,
+        });
+      } else {
+        throw new Error("Failed to load session");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load chat session",
+        variant: "destructive",
+      });
+    }
+  };
 
   const sendMessageMutation = useMutation({
     mutationFn: async ({ message, modelId }: { message: string; modelId: string }) => {
@@ -147,8 +185,19 @@ export default function ChatInterface() {
       <div className="bg-white border-b border-slate-200 px-3 md:px-6 py-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2 md:space-x-4">
-            <h2 className="text-lg font-semibold text-slate-900 hidden sm:block">AI Chat</h2>
-            <h2 className="text-lg font-semibold text-slate-900 sm:hidden">Chat</h2>
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900 hidden sm:block">
+                {currentSession ? sessionTitle || "Restored Chat" : "AI Chat"}
+              </h2>
+              <h2 className="text-lg font-semibold text-slate-900 sm:hidden">
+                {currentSession ? "Restored" : "Chat"}
+              </h2>
+              {currentSession && (
+                <span className="text-xs text-blue-600 hidden sm:block">
+                  <i className="fas fa-history mr-1"></i>Session restored
+                </span>
+              )}
+            </div>
             <div className="flex items-center space-x-2">
               <Select value={selectedModel} onValueChange={setSelectedModel}>
                 <SelectTrigger className="w-32 md:w-48 text-sm">

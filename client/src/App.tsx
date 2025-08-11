@@ -12,14 +12,10 @@ import Admin from "@/pages/admin";
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
-  console.log('Router rendering:', { isAuthenticated, isLoading, hasUser: !!user });
-  
-  // Force a re-render by using the authentication state as a key
-  const renderKey = `${isAuthenticated}-${isLoading}-${!!user}`;
+  let content;
 
-  // Show loading state while authentication is being determined
   if (isLoading) {
-    return (
+    content = (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -29,23 +25,19 @@ function Router() {
         </div>
       </div>
     );
-  }
-
-  // Show auth form if not authenticated
-  if (!isAuthenticated) {
-    return <AuthForm key={renderKey} />;
-  }
-
-  // User is authenticated, show the main app
-  return (
-    <div key={renderKey}>
+  } else if (isAuthenticated) {
+    content = (
       <Switch>
         <Route path="/" component={Home} />
         {user?.role === 'admin' && <Route path="/admin" component={Admin} />}
         <Route component={NotFound} />
       </Switch>
-    </div>
-  );
+    );
+  } else {
+    content = <AuthForm />;
+  }
+
+  return content;
 }
 
 function App() {

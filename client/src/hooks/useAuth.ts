@@ -93,6 +93,8 @@ export function useAuth() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Force refetch user data immediately
+      queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
     }
   });
 
@@ -140,7 +142,7 @@ export function useAuth() {
 
   return {
     user: user as AuthUser | undefined,
-    isLoading,
+    isLoading: isLoading || signInMutation.isPending,
     isAuthenticated: !!user && !!token,
     token,
     signIn: signInMutation.mutate,

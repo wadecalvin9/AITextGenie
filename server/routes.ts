@@ -380,7 +380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get public system settings (like default model)
-  app.get('/api/settings/public', isAuthenticated, async (req, res) => {
+  app.get('/api/settings/public', async (req, res) => {
     try {
       const settings = await storage.getSystemSettings();
       // Only return non-sensitive settings

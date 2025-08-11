@@ -12,6 +12,7 @@ import Admin from "@/pages/admin";
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
+  // Show loading state while authentication is being determined
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">

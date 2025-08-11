@@ -354,6 +354,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get public system settings (like default model)
+  app.get('/api/settings/public', isAuthenticated, async (req, res) => {
+    try {
+      const settings = await storage.getSystemSettings();
+      // Only return non-sensitive settings
+      const publicSettings = settings
+        .filter((setting: any) => !setting.key.includes('key') && !setting.key.includes('secret'))
+        .reduce((acc: any, setting: any) => {
+          acc[setting.key] = setting.value;
+          return acc;
+        }, {});
+      res.json(publicSettings);
+    } catch (error) {
+      console.error("Error fetching public settings:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
   // Admin routes
   app.get('/api/admin/users', isAuthenticated, isAdmin, async (req, res) => {
     try {

@@ -52,12 +52,25 @@ export default function ChatInterface() {
     },
   });
 
-  // Set default model
+  // Get system settings (including default model)
+  const { data: settings = {} } = useQuery({
+    queryKey: ['/api/settings/public'],
+    queryFn: async () => {
+      const res = await fetch('/api/settings/public');
+      if (!res.ok) throw new Error('Failed to fetch settings');
+      return res.json();
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Set default model based on system settings or first available model
   useEffect(() => {
     if (models.length > 0 && !selectedModel) {
-      setSelectedModel(models[0].id);
+      const defaultModelId = settings.default_model;
+      const defaultModel = defaultModelId && models.find((m: any) => m.id === defaultModelId);
+      setSelectedModel(defaultModel ? defaultModelId : models[0].id);
     }
-  }, [models, selectedModel]);
+  }, [models, selectedModel, settings]);
 
   // Load session function
   const loadSession = async (sessionId: string) => {

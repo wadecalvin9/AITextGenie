@@ -42,6 +42,13 @@ An AI chat website with OpenRouter integration, admin panel for model management
   - All admin components and `client/src/components/chat/chat-history.tsx` (scrolling fix)
   - Made chat history responsive with flexible layouts
 
+### Default Model Setting Issue
+- **Problem**: Default model setting from admin panel not persisting across page reloads, always defaulting to first model
+- **Fix**: Created public settings API endpoint and updated chat interface to fetch and use system default model setting
+- **Locations**: 
+  - `server/routes.ts` (added `/api/settings/public` endpoint)
+  - `client/src/components/chat/chat-interface.tsx` (fetch settings and use default model)
+
 ### UI Navigation Issues
 - **Problem**: Navigation state not properly reset when going back from admin to chat
 - **Fix**: Added proper page reload and state reset in "Back to Chat" button

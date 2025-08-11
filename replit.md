@@ -155,20 +155,22 @@ An AI chat website with OpenRouter integration, admin panel for model management
 - **Location**: `client/src/components/chat/chat-interface.tsx`
 
 ### Vercel Deployment Configuration Fix (Jan 11, 2025)
-- **Problem**: Deployed application showing JavaScript bundle instead of proper React app
-- **Fix**: Updated Vercel configuration to properly build and serve frontend from correct directory
-- **Changes**:
-  - Fixed `vercel.json` to use `buildCommand` and `outputDirectory` instead of complex builds array
-  - Corrected frontend serving path from `dist/public/` instead of `dist/`
-  - Added proper CORS headers for API endpoints
-  - Simplified routing to handle SPA properly with fallback to `index.html`
-- **Location**: `vercel.json` - now properly configured for full-stack deployment
-- **Status**: Final deployment fix applied - using rewrites instead of routes for better SPA handling
-- **Final Fix**: Changed from complex builds/routes to simple buildCommand with rewrites pattern:
-  - `buildCommand: "vite build"` - Direct frontend build
-  - `outputDirectory: "./dist/public"` - Serve from build output
-  - `rewrites` pattern to separate API (`/api/*`) from SPA routes (`/*`)
-  - This prevents Vercel from trying to execute server bundle as webpage
+- **Problem**: Deployed application showing code/JavaScript instead of the frontend React app
+- **Root Cause**: Incorrect Vercel configuration causing the server bundle to be served instead of the static frontend
+- **Final Solution**: Simplified Vercel configuration with proper serverless function setup
+- **Changes Applied**:
+  - Updated `buildCommand` to `npm run build` (includes both frontend and backend builds)
+  - Set `outputDirectory` to `dist/public` (without leading `./`)
+  - Configured `server/index.ts` as serverless function with `@vercel/node@3` runtime
+  - Used `rewrites` pattern to properly route:
+    - `/api/*` requests → serverless function at `/server/index.ts`
+    - All other requests (`/*`) → frontend SPA at `/index.html`
+- **Key Fix**: This configuration ensures:
+  - Frontend builds to `dist/public/` and gets served as static files
+  - Backend builds to `dist/index.js` and runs as serverless function
+  - Proper separation prevents server code from being served as webpage
+- **Location**: `vercel.json`
+- **Status**: Updated for Aug 2025 - ready for redeployment
 
 ### Centralized Configuration Management (Jan 11, 2025)
 - **Implementation**: Added comprehensive configuration management system for better maintainability

@@ -3,8 +3,10 @@ services:
     name: ai-chat-platform
     env: node
     plan: free
-    buildCommand: npm run build
+    region: oregon
+    buildCommand: npm ci && npm run build
     startCommand: npm start
+    runtime: node20
     envVars:
       - key: NODE_ENV
         value: production

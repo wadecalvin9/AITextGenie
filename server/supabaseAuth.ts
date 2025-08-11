@@ -57,6 +57,42 @@ export const isAuthenticated = async (req: any, res: Response, next: NextFunctio
   }
 };
 
+// Helper function to authenticate token without middleware
+export const authenticateToken = async (authHeader: string) => {
+  try {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return null;
+    }
+
+    const token = authHeader.substring(7);
+    
+    // Verify the JWT token
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      return null;
+    }
+
+    // Ensure user exists in our database
+    await storage.upsertUser({
+      id: user.id,
+      email: user.email || '',
+      firstName: user.user_metadata?.first_name || '',
+      lastName: user.user_metadata?.last_name || '',
+      profileImageUrl: user.user_metadata?.avatar_url || null,
+    });
+
+    return {
+      id: user.id,
+      email: user.email,
+      ...user.user_metadata
+    };
+  } catch (error) {
+    console.error('Token authentication error:', error);
+    return null;
+  }
+};
+
 // Setup auth routes
 export async function setupAuth(app: Express) {
   // Get current user info

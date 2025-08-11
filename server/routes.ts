@@ -246,7 +246,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Try to authenticate user if token is provided, but don't require it (allow guests)
     if (req.headers.authorization) {
       try {
-        const authResult = await import('./supabaseAuth.js').then(m => m.authenticateToken(req.headers.authorization));
+        const { authenticateToken } = await import('./supabaseAuth.js');
+        const authResult = await authenticateToken(req.headers.authorization);
         if (authResult) {
           (req as any).user = authResult;
         }

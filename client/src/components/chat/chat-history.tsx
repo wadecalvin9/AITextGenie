@@ -5,12 +5,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function ChatHistory() {
   const { isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [selectedModelFilter, setSelectedModelFilter] = useState("all");
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -31,6 +32,39 @@ export default function ChatHistory() {
     queryKey: ['/api/chat/sessions'],
     enabled: isAuthenticated,
   });
+
+  // Get available models for filtering
+  const { data: models = [] } = useQuery({
+    queryKey: ['/api/models'],
+    queryFn: async () => {
+      const res = await fetch('/api/models');
+      if (!res.ok) throw new Error('Failed to fetch models');
+      return res.json();
+    },
+    enabled: isAuthenticated,
+  });
+
+  // Filter sessions based on selected model
+  const filteredSessions = selectedModelFilter === "all" 
+    ? sessions 
+    : sessions.filter(session => 
+        session.modelId === selectedModelFilter ||
+        (session.model && session.model.name && session.model.name.includes(selectedModelFilter))
+      );
+
+  // Get unique models from sessions for more accurate filtering
+  const modelsInSessions = sessions.reduce((acc: any[], session: any) => {
+    if (session.model && session.model.name) {
+      const existing = acc.find(m => m.id === session.modelId);
+      if (!existing) {
+        acc.push({
+          id: session.modelId,
+          name: session.model.name
+        });
+      }
+    }
+    return acc;
+  }, []);
 
   const deleteSessionMutation = useMutation({
     mutationFn: async (sessionId: string) => {
@@ -97,15 +131,23 @@ export default function ChatHistory() {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-4">
           <h2 className="text-xl md:text-2xl font-bold text-slate-900">Chat History</h2>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
-            <Select defaultValue="all">
-              <SelectTrigger className="w-full sm:w-40">
+            <Select value={selectedModelFilter} onValueChange={setSelectedModelFilter}>
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Models</SelectItem>
-                <SelectItem value="gpt-4">GPT-4</SelectItem>
-                <SelectItem value="claude-3">Claude 3</SelectItem>
-                <SelectItem value="mistral">Mistral</SelectItem>
+                <SelectItem value="all">All Models ({sessions.length})</SelectItem>
+                {modelsInSessions.map((model) => {
+                  const count = sessions.filter(s => s.modelId === model.id).length;
+                  return (
+                    <SelectItem key={model.id} value={model.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <span className="truncate pr-2">{model.name}</span>
+                        <span className="text-xs text-slate-500">({count})</span>
+                      </div>
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
             <Button
@@ -128,23 +170,51 @@ export default function ChatHistory() {
           </div>
         </div>
 
-        {sessions.length === 0 ? (
-          <div className="text-center mt-12">
-            <div className="text-slate-400 mb-4">
-              <i className="fas fa-history text-4xl"></i>
+        {filteredSessions.length === 0 ? (
+          sessions.length === 0 ? (
+            <div className="text-center mt-12">
+              <div className="text-slate-400 mb-4">
+                <i className="fas fa-history text-4xl"></i>
+              </div>
+              <h3 className="text-lg font-medium text-slate-900 mb-2">No chat history yet</h3>
+              <p className="text-slate-600 mb-4">Start a conversation to see your chat history here</p>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700"
+                onClick={() => window.location.href = '/'}
+              >
+                Start Chatting
+              </Button>
             </div>
-            <h3 className="text-lg font-medium text-slate-900 mb-2">No chat history yet</h3>
-            <p className="text-slate-600 mb-4">Start a conversation to see your chat history here</p>
-            <Button
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => window.location.href = '/'}
-            >
-              Start Chatting
-            </Button>
-          </div>
+          ) : (
+            <div className="text-center mt-12">
+              <div className="text-slate-400 mb-4">
+                <i className="fas fa-filter text-4xl"></i>
+              </div>
+              <h3 className="text-lg font-medium text-slate-900 mb-2">No sessions found</h3>
+              <p className="text-slate-600 mb-4">
+                No chat sessions found for the selected model filter.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => setSelectedModelFilter("all")}
+              >
+                Show All Sessions
+              </Button>
+            </div>
+          )
         ) : (
           <div className="space-y-4">
-            {sessions.map((session: any) => (
+            <div className="flex items-center justify-between text-sm text-slate-600 mb-4">
+              <span>
+                Showing {filteredSessions.length} of {sessions.length} sessions
+                {selectedModelFilter !== "all" && (
+                  <span className="ml-2 text-blue-600">
+                    • Filtered by: {modelsInSessions.find(m => m.id === selectedModelFilter)?.name || "Unknown Model"}
+                  </span>
+                )}
+              </span>
+            </div>
+            {filteredSessions.map((session: any) => (
               <div
                 key={session.id}
                 className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
@@ -160,9 +230,20 @@ export default function ChatHistory() {
                       {session.title.length > 100 ? session.title.substring(0, 100) + '...' : session.title}
                     </p>
                     <div className="flex items-center space-x-4 text-xs text-slate-500">
-                      <span>{new Date(session.createdAt).toLocaleDateString()}</span>
-                      {session.model && <span>{session.model.name}</span>}
-                      <span>{session.messageCount || 0} messages</span>
+                      <span>
+                        <i className="fas fa-calendar mr-1"></i>
+                        {new Date(session.createdAt).toLocaleDateString()}
+                      </span>
+                      {session.model && (
+                        <span className="flex items-center">
+                          <i className="fas fa-robot mr-1"></i>
+                          <span className="truncate max-w-40">{session.model.name}</span>
+                        </span>
+                      )}
+                      <span>
+                        <i className="fas fa-comment mr-1"></i>
+                        {session.messageCount || 0} messages
+                      </span>
                     </div>
                   </div>
                   <Button

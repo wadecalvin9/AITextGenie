@@ -64,9 +64,9 @@ export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user", token],
     retry: false,
-    enabled: !!token && !authBlocked,
+    enabled: !!token,
     queryFn: async () => {
-      if (!token || authBlocked) return null;
+      if (!token) return null;
       
       try {
         const res = await fetch('/api/auth/user', {
@@ -134,6 +134,7 @@ export function useAuth() {
       }
       if (result.session?.access_token) {
         setToken(result.session.access_token);
+        setAuthBlocked(false);
         localStorage.setItem('supabase_token', result.session.access_token);
       }
       return result;
@@ -141,10 +142,8 @@ export function useAuth() {
     onSuccess: (result) => {
       // Reset auth block on successful sign in
       setAuthBlocked(false);
-      // Give a small delay to ensure token is saved before reload
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // Invalidate queries to refetch user data with new token
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     }
   });
 
@@ -221,13 +220,10 @@ export function useAuth() {
 
   return {
     user: user as AuthUser | undefined,
-    isLoading: (isLoading || signInMutation.isPending) && !authBlocked,
+    isLoading: isLoading || signInMutation.isPending,
     isAuthenticated,
     token,
-    signIn: (data: any) => {
-      resetAuth(); // Reset auth block before signing in
-      signInMutation.mutate(data);
-    },
+    signIn: signInMutation.mutate,
     signUp: signUpMutation.mutate,
     signOut: signOutMutation.mutate,
     resetAuth,

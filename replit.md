@@ -6,7 +6,7 @@ An AI chat website with OpenRouter integration, admin panel for model management
 ## Architecture
 - **Frontend**: React with Vite, TypeScript, Tailwind CSS, shadcn/ui components
 - **Backend**: Express.js with TypeScript
-- **Database**: PostgreSQL with Drizzle ORM
+- **Database**: Supabase (PostgreSQL) with Drizzle ORM
 - **Authentication**: Replit Auth with sessions
 - **AI Integration**: OpenRouter API for multiple model support
 
@@ -55,6 +55,32 @@ An AI chat website with OpenRouter integration, admin panel for model management
 - **Locations**: 
   - `shared/schema.ts` (added `onDelete: "set null"` to model foreign key)
   - `server/storage.ts` (updated `deleteAiModel` to set chat sessions' modelId to null before deletion)
+
+### Database Migration to Supabase (Jan 11, 2025)
+- **Change**: Migrated from local PostgreSQL to Supabase database per user request
+- **Database**: Now using Supabase PostgreSQL with same schema (2 AI models, 11 chat sessions migrated)
+- **Configuration**: Updated DATABASE_URL environment variable to Supabase connection string
+- **Status**: All tables successfully migrated, application fully functional with Supabase
+
+### Chat History Model Filtering Enhanced (Jan 11, 2025)
+- **Problem**: Filter dropdown showed hardcoded dummy models instead of real system models
+- **Fix**: Implemented proper model-based filtering using actual models from database
+- **Features Added**:
+  - Real-time model filtering with session counts
+  - Visual indicators for dates, models, and message counts
+  - Proper filtering logic based on actual modelId
+  - Better empty state when no sessions match filter
+- **Location**: `client/src/components/chat/chat-history.tsx`
+
+### Response Formatting Improvements (Jan 11, 2025)
+- **Problem**: Chat messages extending beyond viewport, poor text wrapping
+- **Fix**: Enhanced message containers, typography, and responsive design
+- **Improvements**:
+  - Better max-widths and responsive sizing for all screen sizes
+  - Improved markdown rendering with proper code block handling
+  - Enhanced text wrapping and overflow prevention
+  - Better mobile responsiveness for chat interface
+- **Locations**: `client/src/components/chat/chat-interface.tsx`, `client/src/index.css`
 
 ### File Upload System Removed (Jan 11, 2025)
 - **Change**: Removed file upload functionality and Files navigation section per user request
@@ -114,6 +140,9 @@ An AI chat website with OpenRouter integration, admin panel for model management
 - ✅ Timestamp errors fixed for session loading
 - ✅ Models page now shows real data instead of dummy models
 - ✅ File upload functionality removed from UI
+- ✅ Database migrated to Supabase (Jan 11, 2025)
+- ✅ Chat history model filtering implemented with real system data
+- ✅ Response formatting and presentation enhanced
 - 🔧 Minor TypeScript warnings in storage.ts (non-critical)
 
 ## User Preferences

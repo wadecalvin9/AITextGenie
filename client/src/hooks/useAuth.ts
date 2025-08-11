@@ -46,29 +46,36 @@ export function useAuth() {
       }
     });
 
-    // Check for existing token in localStorage
+    // Check for existing token in localStorage on mount
     const savedToken = localStorage.getItem('supabase_token');
     if (savedToken) {
+      console.log('Found saved token, setting it');
       setToken(savedToken);
+    } else {
+      console.log('No saved token found');
     }
 
     return () => subscription.unsubscribe();
   }, [queryClient]);
 
   const { data: user, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/user", token], // Include token in query key to trigger refetch when token changes
+    queryKey: ["/api/auth/user", token],
     retry: false,
     enabled: !!token,
-    queryFn: () => fetch('/api/auth/user', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    }).then(res => {
-      if (!res.ok) {
-        throw new Error('Failed to fetch user');
-      }
-      return res.json();
-    }),
+    queryFn: () => {
+      console.log('Fetching user with token:', !!token);
+      return fetch('/api/auth/user', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(res => {
+        if (!res.ok) {
+          console.log('User fetch failed:', res.status);
+          throw new Error('Failed to fetch user');
+        }
+        return res.json();
+      });
+    },
   });
 
   const signInMutation = useMutation({
@@ -140,6 +147,7 @@ export function useAuth() {
   });
 
   const isAuthenticated = !!user && !!token;
+  console.log('Auth hook state:', { hasUser: !!user, hasToken: !!token, isAuthenticated, isLoading });
 
   return {
     user: user as AuthUser | undefined,

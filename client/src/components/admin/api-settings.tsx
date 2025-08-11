@@ -47,6 +47,27 @@ export default function ApiSettings() {
     enabled: isAuthenticated && user?.role === 'admin',
   });
 
+  const { data: settings = [] } = useQuery({
+    queryKey: ['/api/settings'],
+    enabled: isAuthenticated && user?.role === 'admin',
+  });
+
+  // Load existing settings when component mounts
+  useEffect(() => {
+    if (settings && settings.length > 0) {
+      const settingsMap = settings.reduce((acc: any, setting: any) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {});
+      
+      if (settingsMap.rate_limit) setRateLimit(parseInt(settingsMap.rate_limit));
+      if (settingsMap.timeout) setTimeout(parseInt(settingsMap.timeout));
+      if (settingsMap.allow_guests !== undefined) setAllowGuests(settingsMap.allow_guests === 'true');
+      if (settingsMap.rate_limiting_enabled !== undefined) setRateLimitingEnabled(settingsMap.rate_limiting_enabled === 'true');
+      if (settingsMap.default_model) setDefaultModel(settingsMap.default_model);
+    }
+  }, [settings]);
+
   const saveApiKeyMutation = useMutation({
     mutationFn: async (apiKey: string) => {
       const response = await apiRequest('POST', '/api/settings', {
@@ -90,6 +111,8 @@ export default function ApiSettings() {
       await Promise.all(promises);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/public'] });
       toast({
         title: "Success",
         description: "Settings saved successfully.",
@@ -128,13 +151,19 @@ export default function ApiSettings() {
   };
 
   const handleSaveSettings = () => {
-    saveSettingsMutation.mutate({
+    const settingsToSave: Record<string, any> = {
       rate_limit: rateLimit,
       timeout: timeout,
       allow_guests: allowGuests,
       rate_limiting_enabled: rateLimitingEnabled,
-      default_model: defaultModel,
-    });
+    };
+    
+    // Only save default_model if it's not empty
+    if (defaultModel.trim()) {
+      settingsToSave.default_model = defaultModel;
+    }
+    
+    saveSettingsMutation.mutate(settingsToSave);
   };
 
   if (isLoading || statsLoading) {

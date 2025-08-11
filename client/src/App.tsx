@@ -10,7 +10,7 @@ import Home from "@/pages/home";
 import Admin from "@/pages/admin";
 
 function Router() {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, token } = useAuth();
 
   // Show loading state while authentication is being determined
   if (isLoading) {
@@ -26,8 +26,9 @@ function Router() {
     );
   }
 
+  // Force re-render when authentication state changes by using key
   return (
-    <Switch>
+    <Switch key={isAuthenticated ? 'authenticated' : 'unauthenticated'}>
       {!isAuthenticated ? (
         <Route path="/" component={AuthForm} />
       ) : (

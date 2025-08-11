@@ -56,7 +56,7 @@ export function useAuth() {
   }, [queryClient]);
 
   const { data: user, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/user"],
+    queryKey: ["/api/auth/user", token], // Include token in query key to trigger refetch when token changes
     retry: false,
     enabled: !!token,
     queryFn: () => fetch('/api/auth/user', {
@@ -91,10 +91,10 @@ export function useAuth() {
       }
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
+      // Force invalidation and refetch with new token
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      // Force refetch user data immediately
-      queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
+      // The query will automatically refetch because token changed and is in the query key
     }
   });
 

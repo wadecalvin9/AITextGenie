@@ -94,7 +94,10 @@ export function useAuth() {
     onSuccess: (result) => {
       // Force invalidation and refetch with new token
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      // The query will automatically refetch because token changed and is in the query key
+      // Force a page reload to ensure UI updates
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500);
     }
   });
 
@@ -143,6 +146,15 @@ export function useAuth() {
   // Debug authentication state
   const isAuthenticated = !!user && !!token;
   console.log('Auth state:', { user: !!user, token: !!token, isLoading, isAuthenticated });
+  
+  // Force re-render when authentication state changes
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      console.log('User is authenticated, forcing app refresh');
+      // Force a page redirect to ensure UI updates
+      window.location.reload();
+    }
+  }, [isAuthenticated, isLoading]);
 
   return {
     user: user as AuthUser | undefined,

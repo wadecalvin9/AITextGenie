@@ -65,7 +65,14 @@ export default function ChatInterface() {
       const response = await fetch(`/api/chat/sessions/${sessionId}/messages`);
       if (response.ok) {
         const sessionData = await response.json();
-        setMessages(sessionData.messages || []);
+        
+        // Ensure all messages have proper timestamp objects
+        const processedMessages = (sessionData.messages || []).map((msg: any) => ({
+          ...msg,
+          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+        }));
+        
+        setMessages(processedMessages);
         setCurrentSession(sessionId);
         setSessionTitle(sessionData.title || "Restored Chat");
         if (sessionData.modelId) {
@@ -296,7 +303,10 @@ export default function ChatInterface() {
                 message.role === 'user' ? 'justify-end' : ''
               }`}>
                 <span className="text-xs text-slate-500">
-                  {message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  {message.timestamp && message.timestamp instanceof Date 
+                    ? message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                    : new Date(message.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                  }
                 </span>
                 {message.role === 'user' ? (
                   <span className="text-xs text-slate-500">You</span>

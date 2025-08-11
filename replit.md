@@ -43,6 +43,11 @@ An AI chat website with OpenRouter integration, admin panel for model management
 - **Fix**: Added proper typing for sessions data
 - **Location**: `client/src/components/chat/chat-history.tsx`
 
+### Timestamp Error on Session Load
+- **Problem**: `toLocaleTimeString()` error when loading messages from restored sessions
+- **Fix**: Added proper timestamp validation and conversion to Date objects
+- **Location**: `client/src/components/chat/chat-interface.tsx` (loadSession function and timestamp rendering)
+
 ## Technical Details
 
 ### Session Restoration Flow
@@ -63,6 +68,7 @@ An AI chat website with OpenRouter integration, admin panel for model management
 - ✅ Chat history functionality implemented
 - ✅ Responsive design improved
 - ✅ Session restoration working
+- ✅ Timestamp errors fixed for session loading
 - 🔧 Minor TypeScript warnings in storage.ts (non-critical)
 
 ## User Preferences

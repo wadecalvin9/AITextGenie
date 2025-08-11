@@ -1,0 +1,36 @@
+The above error occurred in the <ChatInterface> component:
+
+    at ChatInterface (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/src/components/chat/chat-interface.tsx:35:35)
+    at div
+    at div
+    at Home (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/src/pages/home.tsx:27:41)
+    at Route (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2b32c0d2:323:16)
+    at Switch (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2b32c0d2:379:17)
+    at Router (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/src/App.tsx?v=pnfLQJSf-2u8fNAT6OCHB:30:48)
+    at Provider (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5AJU3CG7.js?v=2b32c0d2:38:15)
+    at TooltipProvider (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=2b32c0d2:61:5)
+    at QueryClientProvider (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=2b32c0d2:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+
+at ChatInterface (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/src/components/chat/chat-interface.tsx:35:35)
+at div
+at div
+at Home (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/src/pages/home.tsx:27:41)
+at Route (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2b32c0d2:323:16)
+at Switch (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=2b32c0d2:379:17)
+at Router (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/src/App.tsx?v=pnfLQJSf-2u8fNAT6OCHB:30:48)
+at Provider (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-5AJU3CG7.js?v=2b32c0d2:38:15)
+at TooltipProvider (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=2b32c0d2:61:5)
+at QueryClientProvider (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=2b32c0d2:2805:3)
+at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+at t.value (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://7fbf7575-4c74-4d83-af05-4c96f3bbcc95-00-28sz4yyke6grq.worf.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
+Cannot read properties of undefined (reading 'toLocaleTimeString')

@@ -257,7 +257,7 @@ export default function ChatInterface() {
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 space-y-4 md:space-y-6" style={{ height: 'calc(100vh - 280px)', paddingBottom: '80px' }}>
+      <div className="flex-1 overflow-y-auto px-2 sm:px-4 md:px-6 py-4 space-y-3 md:space-y-4" style={{ height: 'calc(100vh - 280px)', paddingBottom: '80px' }}>
         {messages.length === 0 && (
           <div className="text-center text-slate-500 mt-8 md:mt-12">
             <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -268,99 +268,135 @@ export default function ChatInterface() {
           </div>
         )}
         
-        {messages.map((message) => (
-          <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : ''} w-full`}>
-            {message.role === 'assistant' && (
-              <div className="flex-shrink-0 mr-2 md:mr-3">
-                <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
-                  <i className="fas fa-robot text-white text-xs md:text-sm"></i>
+        <div className="max-w-4xl mx-auto w-full space-y-3 md:space-y-4">
+          {messages.map((message) => (
+            <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} w-full`}>
+              {message.role === 'assistant' && (
+                <div className="flex-shrink-0 mr-2 md:mr-3 mt-1">
+                  <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
+                    <i className="fas fa-robot text-white text-xs md:text-sm"></i>
+                  </div>
                 </div>
-              </div>
-            )}
-            <div className={`${message.role === 'user' ? 'max-w-[85%] md:max-w-3xl' : 'flex-1 max-w-full md:max-w-4xl'}`}>
-              <div className={`rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-sm ${
-                message.role === 'user'
-                  ? 'bg-blue-600 text-white rounded-br-md'
-                  : 'bg-white border border-slate-200 rounded-tl-md'
-              }`}>
-                <div className={`text-sm md:text-base ${message.role === 'user' ? 'whitespace-pre-wrap' : ''}`}>
+              )}
+              <div className={`${
+                message.role === 'user' 
+                  ? 'max-w-[80%] sm:max-w-[75%] md:max-w-[70%]' 
+                  : 'flex-1 max-w-[95%] sm:max-w-[85%] md:max-w-[80%]'
+              } min-w-0`}>
+                <div className={`rounded-2xl px-3 md:px-4 py-2 md:py-3 shadow-sm ${
+                  message.role === 'user'
+                    ? 'bg-blue-600 text-white rounded-br-md'
+                    : 'bg-white border border-slate-200 rounded-tl-md'
+                }`}>
+                  <div className={`text-sm md:text-base leading-relaxed ${message.role === 'user' ? 'whitespace-pre-wrap break-words' : ''}`}>
+                    {message.role === 'user' ? (
+                      message.content
+                    ) : (
+                      <div className="prose prose-sm md:prose max-w-none 
+                        prose-headings:text-slate-800 prose-headings:font-semibold prose-headings:mb-2 prose-headings:mt-3 first:prose-headings:mt-0
+                        prose-p:text-slate-700 prose-p:mb-3 prose-p:leading-relaxed last:prose-p:mb-0
+                        prose-code:text-blue-600 prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono
+                        prose-pre:bg-slate-50 prose-pre:border prose-pre:border-slate-200 prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto prose-pre:text-sm
+                        prose-blockquote:border-l-blue-500 prose-blockquote:border-l-4 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-slate-600
+                        prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-li:text-slate-700
+                        prose-strong:text-slate-800 prose-strong:font-semibold
+                        prose-a:text-blue-600 prose-a:underline hover:prose-a:text-blue-800
+                        prose-table:border-collapse prose-table:border prose-table:border-slate-200 prose-table:text-sm
+                        prose-th:border prose-th:border-slate-200 prose-th:bg-slate-50 prose-th:p-2 prose-th:font-semibold
+                        prose-td:border prose-td:border-slate-200 prose-td:p-2">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkGfm, remarkBreaks]}
+                          rehypePlugins={[rehypeHighlight]}
+                          components={{
+                            code: ({className, children, ...props}) => {
+                              const match = /language-(\w+)/.exec(className || '');
+                              if (match) {
+                                return (
+                                  <code className={`${className} block bg-slate-50 border border-slate-200 rounded-lg p-3 overflow-x-auto text-sm font-mono leading-relaxed`} {...props}>
+                                    {children}
+                                  </code>
+                                );
+                              }
+                              return (
+                                <code className="bg-slate-100 px-1 py-0.5 rounded text-sm font-mono text-blue-600" {...props}>
+                                  {children}
+                                </code>
+                              );
+                            },
+                            pre: ({children}) => <div className="my-3 first:mt-0 last:mb-0">{children}</div>,
+                            p: ({children}) => <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>,
+                            ul: ({children}) => <ul className="my-2 space-y-1 pl-4">{children}</ul>,
+                            ol: ({children}) => <ol className="my-2 space-y-1 pl-4">{children}</ol>,
+                            li: ({children}) => <li className="text-sm md:text-base leading-relaxed">{children}</li>,
+                            h1: ({children}) => <h1 className="text-lg font-semibold text-slate-800 mb-2 mt-3 first:mt-0">{children}</h1>,
+                            h2: ({children}) => <h2 className="text-base font-semibold text-slate-800 mb-2 mt-3 first:mt-0">{children}</h2>,
+                            h3: ({children}) => <h3 className="text-sm font-semibold text-slate-800 mb-2 mt-2 first:mt-0">{children}</h3>,
+                            blockquote: ({children}) => <blockquote className="border-l-4 border-l-blue-500 pl-4 my-3 italic text-slate-600 bg-blue-50 py-2 rounded-r">{children}</blockquote>,
+                            table: ({children}) => (
+                              <div className="overflow-x-auto my-3">
+                                <table className="min-w-full border-collapse border border-slate-200 text-sm">{children}</table>
+                              </div>
+                            ),
+                          }}
+                        >
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className={`flex items-center mt-1 space-x-2 px-1 ${
+                  message.role === 'user' ? 'justify-end' : ''
+                }`}>
+                  <span className="text-xs text-slate-500">
+                    {message.timestamp && message.timestamp instanceof Date 
+                      ? message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                      : new Date(message.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                    }
+                  </span>
                   {message.role === 'user' ? (
-                    message.content
+                    <span className="text-xs text-slate-500">You</span>
                   ) : (
-                    <div className="prose prose-sm md:prose max-w-none prose-headings:text-slate-800 prose-p:text-slate-700 prose-code:text-blue-600 prose-pre:bg-slate-50 prose-pre:border prose-blockquote:border-l-blue-500">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm, remarkBreaks]}
-                        rehypePlugins={[rehypeHighlight]}
-                        components={{
-                          code: ({className, children, ...props}) => {
-                            const match = /language-(\w+)/.exec(className || '');
-                            return (
-                              <code className={`${className || 'bg-slate-100 px-1 py-0.5 rounded text-sm'}`} {...props}>
-                                {children}
-                              </code>
-                            );
-                          },
-                          p: ({children}) => <p className="mb-2 last:mb-0">{children}</p>,
-                          ul: ({children}) => <ul className="my-2 space-y-1">{children}</ul>,
-                          ol: ({children}) => <ol className="my-2 space-y-1">{children}</ol>,
-                          li: ({children}) => <li className="text-sm md:text-base">{children}</li>,
-                        }}
-                      >
-                        {message.content}
-                      </ReactMarkdown>
+                    <span className="text-xs text-slate-500 truncate max-w-20">{message.model || 'AI'}</span>
+                  )}
+                  {message.role === 'assistant' && (
+                    <div className="flex space-x-1">
+                      <button className="text-xs text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100">
+                        <i className="fas fa-copy"></i>
+                      </button>
+                      <button className="text-xs text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100">
+                        <i className="fas fa-thumbs-up"></i>
+                      </button>
+                      <button className="text-xs text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100">
+                        <i className="fas fa-thumbs-down"></i>
+                      </button>
                     </div>
                   )}
                 </div>
               </div>
-              <div className={`flex items-center mt-1 space-x-2 px-1 ${
-                message.role === 'user' ? 'justify-end' : ''
-              }`}>
-                <span className="text-xs text-slate-500">
-                  {message.timestamp && message.timestamp instanceof Date 
-                    ? message.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-                    : new Date(message.timestamp || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
-                  }
-                </span>
-                {message.role === 'user' ? (
-                  <span className="text-xs text-slate-500">You</span>
-                ) : (
-                  <span className="text-xs text-slate-500">{message.model || 'AI'}</span>
-                )}
-                {message.role === 'assistant' && (
-                  <div className="flex space-x-1">
-                    <button className="text-xs text-slate-400 hover:text-slate-600 p-1">
-                      <i className="fas fa-copy"></i>
-                    </button>
-                    <button className="text-xs text-slate-400 hover:text-slate-600 p-1">
-                      <i className="fas fa-thumbs-up"></i>
-                    </button>
-                    <button className="text-xs text-slate-400 hover:text-slate-600 p-1">
-                      <i className="fas fa-thumbs-down"></i>
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
         {/* Loading State */}
         {sendMessageMutation.isPending && (
-          <div className="flex w-full">
-            <div className="flex-shrink-0 mr-2 md:mr-3">
-              <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
-                <i className="fas fa-robot text-white text-xs md:text-sm"></i>
+          <div className="max-w-4xl mx-auto w-full">
+            <div className="flex justify-start w-full">
+              <div className="flex-shrink-0 mr-2 md:mr-3 mt-1">
+                <div className="w-6 h-6 md:w-8 md:h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
+                  <i className="fas fa-robot text-white text-xs md:text-sm"></i>
+                </div>
               </div>
-            </div>
-            <div className="flex-1 max-w-full md:max-w-4xl">
-              <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-md px-3 md:px-4 py-2 md:py-3 shadow-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+              <div className="flex-1 max-w-[95%] sm:max-w-[85%] md:max-w-[80%] min-w-0">
+                <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-md px-3 md:px-4 py-2 md:py-3 shadow-sm">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                      <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                    </div>
+                    <span className="text-xs md:text-sm text-slate-500">AI is thinking...</span>
                   </div>
-                  <span className="text-xs md:text-sm text-slate-500">AI is thinking...</span>
                 </div>
               </div>
             </div>

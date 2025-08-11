@@ -61,28 +61,32 @@ export default function ModelsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {models.map((model) => (
-                <div key={model.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-slate-800 text-sm leading-tight">{model.name}</h3>
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded ml-2 flex-shrink-0">
+                <div key={model.id} className="p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors overflow-hidden">
+                  <div className="flex items-start justify-between mb-3">
+                    <h3 className="font-semibold text-slate-800 text-sm leading-tight flex-1 pr-2 break-words">
+                      {model.name}
+                    </h3>
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded flex-shrink-0">
                       {model.provider}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-600 mb-3">{model.modelId}</p>
-                  <div className="space-y-1">
-                    <div className="text-xs text-slate-500">
-                      <i className="fas fa-memory mr-1"></i>
-                      {formatContextLength(model.contextLength)}
+                  <p className="text-xs text-slate-600 mb-3 font-mono bg-white px-2 py-1 rounded border break-all">
+                    {model.modelId}
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center text-xs text-slate-500">
+                      <i className="fas fa-memory mr-2 w-3 text-center flex-shrink-0"></i>
+                      <span className="flex-1">{formatContextLength(model.contextLength)}</span>
                     </div>
-                    <div className="text-xs text-slate-500">
-                      <i className="fas fa-dollar-sign mr-1"></i>
-                      {formatCost(model.costPer1kTokens)}
+                    <div className="flex items-center text-xs text-slate-500">
+                      <i className="fas fa-dollar-sign mr-2 w-3 text-center flex-shrink-0"></i>
+                      <span className="flex-1">{formatCost(model.costPer1kTokens)}</span>
                     </div>
                   </div>
                   <div className="mt-3 pt-3 border-t border-slate-200">
                     <div className="flex items-center text-xs text-green-600">
-                      <i className="fas fa-check-circle mr-1"></i>
-                      Active
+                      <i className="fas fa-check-circle mr-2 flex-shrink-0"></i>
+                      <span>Active</span>
                     </div>
                   </div>
                 </div>

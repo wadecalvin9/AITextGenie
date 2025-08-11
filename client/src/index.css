@@ -106,4 +106,47 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  /* Ensure proper text wrapping and overflow handling */
+  .prose pre {
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+    max-width: 100% !important;
+  }
+  
+  .prose code {
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
+  /* Improve table responsiveness */
+  .prose table {
+    display: block !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    max-width: 100% !important;
+  }
+  
+  .prose table tbody {
+    display: table !important;
+    width: 100% !important;
+  }
+  
+  /* Better mobile text handling */
+  @media (max-width: 640px) {
+    .prose {
+      font-size: 0.875rem !important;
+      line-height: 1.5 !important;
+    }
+    
+    .prose pre {
+      font-size: 0.75rem !important;
+      padding: 0.75rem !important;
+    }
+    
+    .prose code {
+      font-size: 0.75rem !important;
+    }
+  }
 }

@@ -14,6 +14,7 @@ interface AuthUser {
 
 export function useAuth() {
   const [token, setToken] = useState<string | null>(null);
+  const [authBlocked, setAuthBlocked] = useState(false);
   const queryClient = useQueryClient();
 
   // Get session from Supabase on mount
@@ -59,18 +60,41 @@ export function useAuth() {
   const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user", token],
     retry: false,
-    enabled: !!token,
-    queryFn: () => {
-      return fetch('/api/auth/user', {
-        headers: {
-          'Authorization': `Bearer ${token}`
+    enabled: !!token && !authBlocked,
+    queryFn: async () => {
+      if (!token || authBlocked) return null;
+      
+      try {
+        const res = await fetch('/api/auth/user', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (res.status === 401) {
+          // Token is invalid, clear everything and block further requests
+          console.log('401 error - clearing auth and blocking further requests');
+          setToken(null);
+          setAuthBlocked(true);
+          localStorage.removeItem('supabase_token');
+          queryClient.clear();
+          return null;
         }
-      }).then(res => {
+        
         if (!res.ok) {
           throw new Error('Failed to fetch user');
         }
+        
         return res.json();
-      });
+      } catch (error) {
+        console.error('Auth error:', error);
+        // Clear invalid token and block auth on any error
+        setToken(null);
+        setAuthBlocked(true);
+        localStorage.removeItem('supabase_token');
+        queryClient.clear();
+        return null;
+      }
     },
   });
 
@@ -137,6 +161,7 @@ export function useAuth() {
       
       await supabase.auth.signOut();
       setToken(null);
+      setAuthBlocked(false); // Reset auth block on manual sign out
       localStorage.removeItem('supabase_token');
       queryClient.clear();
       
@@ -144,16 +169,27 @@ export function useAuth() {
     }
   });
 
-  const isAuthenticated = !!user && !!token;
+  // Reset auth block when user manually tries to authenticate
+  const resetAuth = () => {
+    setAuthBlocked(false);
+    setToken(null);
+    localStorage.removeItem('supabase_token');
+  };
+
+  const isAuthenticated = !!user && !!token && !authBlocked;
 
   return {
     user: user as AuthUser | undefined,
-    isLoading: isLoading || signInMutation.isPending,
+    isLoading: (isLoading || signInMutation.isPending) && !authBlocked,
     isAuthenticated,
     token,
-    signIn: signInMutation.mutate,
+    signIn: (data: any) => {
+      resetAuth(); // Reset auth block before signing in
+      signInMutation.mutate(data);
+    },
     signUp: signUpMutation.mutate,
     signOut: signOutMutation.mutate,
+    resetAuth,
     isSigningIn: signInMutation.isPending,
     isSigningUp: signUpMutation.isPending,
     isSigningOut: signOutMutation.isPending,

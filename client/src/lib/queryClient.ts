@@ -2,6 +2,11 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
+    // Handle 401 errors by clearing invalid tokens
+    if (res.status === 401) {
+      localStorage.removeItem('supabase_token');
+      // Don't throw immediately, let the component handle it
+    }
     const text = (await res.text()) || res.statusText;
     throw new Error(`${res.status}: ${text}`);
   }
@@ -49,6 +54,8 @@ export const getQueryFn: <T>(options: {
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      // Clear invalid token
+      localStorage.removeItem('supabase_token');
       return null;
     }
 

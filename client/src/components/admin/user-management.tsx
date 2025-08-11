@@ -94,10 +94,10 @@ export default function UserManagement() {
 
   if (isLoading || usersLoading) {
     return (
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-3 md:p-6">
         <div className="max-w-6xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-slate-200 rounded mb-6"></div>
+            <div className="h-6 md:h-8 bg-slate-200 rounded mb-4 md:mb-6"></div>
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               <div className="p-6">
                 <div className="space-y-4">
@@ -120,20 +120,20 @@ export default function UserManagement() {
   }
 
   return (
-    <div className="flex-1 p-6">
+    <div className="flex-1 p-3 md:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">User Management</h2>
-          <div className="flex space-x-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-4">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900">User Management</h2>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Input
               type="search"
               placeholder="Search users..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-64"
+              className="w-full sm:w-64"
             />
             <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

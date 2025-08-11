@@ -233,11 +233,11 @@ export default function ModelManagement() {
 
   if (isLoading || modelsLoading) {
     return (
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-3 md:p-6">
         <div className="max-w-6xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-slate-200 rounded mb-6"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="h-6 md:h-8 bg-slate-200 rounded mb-4 md:mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="bg-white rounded-xl border border-slate-200 p-6">
                   <div className="h-6 bg-slate-200 rounded mb-4"></div>
@@ -257,18 +257,22 @@ export default function ModelManagement() {
   }
 
   return (
-    <div className="flex-1 p-6">
+    <div className="flex-1 p-3 md:p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">Manage AI Models</h2>
-          <div className="flex space-x-3">
-            <Button onClick={handleOpenRouterSearch} variant="outline">
-              <i className="fas fa-search mr-2"></i>Browse OpenRouter
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-4">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900">Manage AI Models</h2>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+            <Button onClick={handleOpenRouterSearch} variant="outline" className="w-full sm:w-auto">
+              <i className="fas fa-search mr-2"></i>
+              <span className="hidden sm:inline">Browse OpenRouter</span>
+              <span className="sm:hidden">Browse</span>
             </Button>
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={resetForm}>
-                  <i className="fas fa-plus mr-2"></i>Add Manually
+                <Button onClick={resetForm} className="w-full sm:w-auto">
+                  <i className="fas fa-plus mr-2"></i>
+                  <span className="hidden sm:inline">Add Manually</span>
+                  <span className="sm:hidden">Add</span>
                 </Button>
               </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
@@ -431,17 +435,17 @@ export default function ModelManagement() {
         </Dialog>
 
         {/* Models Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {models.map((model: any) => (
-            <div key={model.id} className="bg-white rounded-xl border border-slate-200 p-6">
+            <div key={model.id} className="bg-white rounded-xl border border-slate-200 p-4 md:p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
                     <i className="fas fa-brain text-white"></i>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900">{model.name}</h3>
-                    <p className="text-sm text-slate-500">{model.provider}</p>
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-slate-900 text-sm md:text-base truncate">{model.name}</h3>
+                    <p className="text-xs md:text-sm text-slate-500 truncate">{model.provider}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -454,21 +458,21 @@ export default function ModelManagement() {
               </div>
               
               <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs md:text-sm">
                   <span className="text-slate-500">Context Length:</span>
                   <span className="text-slate-900">{model.contextLength?.toLocaleString() || 'N/A'} tokens</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs md:text-sm">
                   <span className="text-slate-500">Cost per 1K tokens:</span>
                   <span className="text-slate-900">${model.costPer1kTokens || 0}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs md:text-sm">
                   <span className="text-slate-500">Model ID:</span>
-                  <span className="text-slate-900 text-xs font-mono">{model.modelId}</span>
+                  <span className="text-slate-900 text-xs font-mono truncate">{model.modelId}</span>
                 </div>
               </div>
 
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
                   variant="outline"
                   size="sm"

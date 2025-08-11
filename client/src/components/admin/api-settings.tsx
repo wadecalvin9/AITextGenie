@@ -139,10 +139,10 @@ export default function ApiSettings() {
 
   if (isLoading || statsLoading) {
     return (
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-3 md:p-6">
         <div className="max-w-4xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-slate-200 rounded mb-6"></div>
+            <div className="h-6 md:h-8 bg-slate-200 rounded mb-4 md:mb-6"></div>
             <div className="space-y-6">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="bg-white rounded-xl border border-slate-200 p-6">
@@ -161,12 +161,12 @@ export default function ApiSettings() {
   }
 
   return (
-    <div className="flex-1 p-6">
+    <div className="flex-1 p-3 md:p-6">
       <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold text-slate-900 mb-6">API Settings</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-4 md:mb-6">API Settings</h2>
 
         {/* OpenRouter Configuration */}
-        <Card className="mb-6">
+        <Card className="mb-4 md:mb-6">
           <CardHeader>
             <div className="flex items-center mb-4">
               <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center mr-3">
@@ -181,7 +181,7 @@ export default function ApiSettings() {
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="apiKey">API Key</Label>
-              <div className="flex space-x-2 mt-2">
+              <div className="flex flex-col sm:flex-row gap-2 mt-2">
                 <Input
                   id="apiKey"
                   type="password"
@@ -193,6 +193,7 @@ export default function ApiSettings() {
                 <Button
                   onClick={handleSaveApiKey}
                   disabled={saveApiKeyMutation.isPending}
+                  className="w-full sm:w-auto"
                 >
                   {saveApiKeyMutation.isPending ? 'Saving...' : 'Save'}
                 </Button>

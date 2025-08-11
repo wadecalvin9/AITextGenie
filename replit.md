@@ -154,6 +154,17 @@ An AI chat website with OpenRouter integration, admin panel for model management
   - Resolved 401 unauthorized errors when accessing `/api/chat/sessions/:id/messages`
 - **Location**: `client/src/components/chat/chat-interface.tsx`
 
+### Vercel Deployment Configuration Fix (Jan 11, 2025)
+- **Problem**: Deployed application showing JavaScript bundle instead of proper React app
+- **Fix**: Updated Vercel configuration to properly build and serve frontend from correct directory
+- **Changes**:
+  - Fixed `vercel.json` to use `buildCommand` and `outputDirectory` instead of complex builds array
+  - Corrected frontend serving path from `dist/public/` instead of `dist/`
+  - Added proper CORS headers for API endpoints
+  - Simplified routing to handle SPA properly with fallback to `index.html`
+- **Location**: `vercel.json` - now properly configured for full-stack deployment
+- **Status**: Deployment configuration fixed, ready for redeployment
+
 ### Centralized Configuration Management (Jan 11, 2025)
 - **Implementation**: Added comprehensive configuration management system for better maintainability
 - **Features**:

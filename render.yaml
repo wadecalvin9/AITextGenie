@@ -2,11 +2,27 @@ services:
   - type: web
     name: ai-chat-platform
     env: node
-    buildCommand: npm install && npm run build
+    plan: free
+    buildCommand: npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
-    autoDeploy: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-chat-db
+          property: connectionString
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+
+databases:
+  - name: ai-chat-db
+    plan: free

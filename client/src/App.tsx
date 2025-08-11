@@ -12,6 +12,9 @@ import Admin from "@/pages/admin";
 function Router() {
   const { isAuthenticated, isLoading, user, token } = useAuth();
 
+  // Debug authentication state in router
+  console.log('Router state:', { isAuthenticated, isLoading, hasUser: !!user, hasToken: !!token });
+
   // Show loading state while authentication is being determined
   if (isLoading) {
     return (

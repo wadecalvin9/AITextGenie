@@ -140,6 +140,9 @@ export function useAuth() {
     }
   });
 
+  // Debug authentication state
+  console.log('Auth state:', { user, token, isLoading, isAuthenticated: !!user && !!token });
+
   return {
     user: user as AuthUser | undefined,
     isLoading: isLoading || signInMutation.isPending,

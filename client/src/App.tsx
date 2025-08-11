@@ -13,6 +13,9 @@ function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
   console.log('Router rendering:', { isAuthenticated, isLoading, hasUser: !!user });
+  
+  // Force a re-render by using the authentication state as a key
+  const renderKey = `${isAuthenticated}-${isLoading}-${!!user}`;
 
   // Show loading state while authentication is being determined
   if (isLoading) {
@@ -30,16 +33,18 @@ function Router() {
 
   // Show auth form if not authenticated
   if (!isAuthenticated) {
-    return <AuthForm />;
+    return <AuthForm key={renderKey} />;
   }
 
   // User is authenticated, show the main app
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      {user?.role === 'admin' && <Route path="/admin" component={Admin} />}
-      <Route component={NotFound} />
-    </Switch>
+    <div key={renderKey}>
+      <Switch>
+        <Route path="/" component={Home} />
+        {user?.role === 'admin' && <Route path="/admin" component={Admin} />}
+        <Route component={NotFound} />
+      </Switch>
+    </div>
   );
 }
 

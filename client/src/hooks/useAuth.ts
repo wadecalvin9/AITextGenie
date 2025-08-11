@@ -146,9 +146,13 @@ export function useAuth() {
   // Log authentication state changes for debugging
   useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      console.log('User is authenticated!');
+      console.log('User is authenticated! Triggering app update...');
+      // Force the App component to re-render by triggering a state update
+      window.dispatchEvent(new CustomEvent('auth-state-change', { 
+        detail: { isAuthenticated, user }
+      }));
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, user]);
 
   return {
     user: user as AuthUser | undefined,

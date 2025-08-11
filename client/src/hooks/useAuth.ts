@@ -34,16 +34,19 @@ export function useAuth() {
       console.warn('Error getting Supabase session:', error);
     });
 
-    // Listen for auth changes
+    // Listen for auth changes - but don't clear token if we have one saved
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.access_token) {
+        console.log('Supabase auth change - setting token');
         setToken(session.access_token);
         localStorage.setItem('supabase_token', session.access_token);
-      } else {
+      } else if (event === 'SIGNED_OUT') {
+        console.log('Supabase signed out - clearing token');
         setToken(null);
         localStorage.removeItem('supabase_token');
         queryClient.clear(); // Clear all cached data on logout
       }
+      // Don't clear token on other events like TOKEN_REFRESHED that might not have session
     });
 
     // Check for existing token in localStorage on mount
@@ -99,8 +102,10 @@ export function useAuth() {
       return result;
     },
     onSuccess: (result) => {
-      // Simple redirect - just reload the page
-      window.location.reload();
+      // Give a small delay to ensure token is saved before reload
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     }
   });
 

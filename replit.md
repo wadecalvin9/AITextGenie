@@ -161,7 +161,7 @@ An AI chat website with OpenRouter integration, admin panel for model management
 - **Changes Applied**:
   - Updated `buildCommand` to `npm run build` (includes both frontend and backend builds)
   - Set `outputDirectory` to `dist/public` (without leading `./`)
-  - Configured `server/index.ts` as serverless function with `@vercel/node@3` runtime
+  - Configured `server/index.ts` as serverless function with `nodejs20.x` runtime (fixed from invalid `@vercel/node@3`)
   - Used `rewrites` pattern to properly route:
     - `/api/*` requests → serverless function at `/server/index.ts`
     - All other requests (`/*`) → frontend SPA at `/index.html`

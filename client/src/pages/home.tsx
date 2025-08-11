@@ -3,11 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import Sidebar from "@/components/layout/sidebar";
 import ChatInterface from "@/components/chat/chat-interface";
 import ChatHistory from "@/components/chat/chat-history";
-import FileUpload from "@/components/features/file-upload";
 import ModelComparison from "@/components/features/model-comparison";
 import ModelsPage from "@/components/pages/models-page";
 
-type ViewType = 'chat' | 'history' | 'models' | 'files' | 'compare';
+type ViewType = 'chat' | 'history' | 'models' | 'compare';
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<ViewType>('chat');
@@ -22,40 +21,7 @@ export default function Home() {
         return <ChatHistory />;
       case 'models':
         return <ModelsPage />;
-      case 'files':
-        return (
-          <div className="flex-1 p-3 md:p-6 overflow-y-auto">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-4 md:mb-6">File Upload</h2>
-              <div className="bg-white rounded-lg border p-4 md:p-6">
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-2">Upload Files for AI Analysis</h3>
-                  <p className="text-slate-600">
-                    Upload images, documents, and other files to analyze them with AI. Supported formats include:
-                  </p>
-                  <ul className="list-disc ml-5 mt-2 text-sm text-slate-600">
-                    <li>Images (JPG, PNG, GIF, WebP)</li>
-                    <li>Text files (TXT, MD, CSV)</li>
-                    <li>Documents (PDF)</li>
-                    <li>Data files (JSON)</li>
-                  </ul>
-                </div>
-                <FileUpload />
-                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-start space-x-2">
-                    <i className="fas fa-check-circle text-green-600 mt-0.5"></i>
-                    <div>
-                      <h4 className="font-medium text-green-800">File Upload Active</h4>
-                      <p className="text-sm text-green-700 mt-1">
-                        Upload files and reference them in your chat conversations. Text files and JSON files are automatically processed for AI analysis.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+
       case 'compare':
         return (
           <div className="flex-1 p-3 md:p-6 overflow-y-auto">
@@ -158,15 +124,7 @@ export default function Home() {
             <i className="fas fa-balance-scale text-base mb-0.5"></i>
             <span className="text-xs truncate">Compare</span>
           </button>
-          <button
-            onClick={() => setCurrentView('files')}
-            className={`flex flex-col items-center p-1.5 min-w-0 ${
-              currentView === 'files' ? 'text-blue-600' : 'text-slate-600'
-            }`}
-          >
-            <i className="fas fa-file-upload text-base mb-0.5"></i>
-            <span className="text-xs truncate">Files</span>
-          </button>
+
           <button
             onClick={() => setCurrentView('models')}
             className={`flex flex-col items-center p-1.5 min-w-0 ${

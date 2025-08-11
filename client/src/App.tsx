@@ -10,10 +10,9 @@ import Home from "@/pages/home";
 import Admin from "@/pages/admin";
 
 function Router() {
-  const { isAuthenticated, isLoading, user, token } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
-  // Debug authentication state in router
-  console.log('Router state:', { isAuthenticated, isLoading, hasUser: !!user, hasToken: !!token });
+  console.log('Router rendering:', { isAuthenticated, isLoading, hasUser: !!user });
 
   // Show loading state while authentication is being determined
   if (isLoading) {
@@ -29,13 +28,9 @@ function Router() {
     );
   }
 
-  // Force complete re-render when authentication state changes
+  // Show auth form if not authenticated
   if (!isAuthenticated) {
-    return (
-      <Switch>
-        <Route path="*" component={AuthForm} />
-      </Switch>
-    );
+    return <AuthForm />;
   }
 
   // User is authenticated, show the main app

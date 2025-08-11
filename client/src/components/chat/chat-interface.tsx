@@ -244,7 +244,7 @@ export default function ChatInterface() {
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 space-y-4 md:space-y-6" style={{ height: 'calc(100vh - 220px)', paddingBottom: '80px' }}>
+      <div className="flex-1 overflow-y-auto px-3 md:px-6 py-4 space-y-4 md:space-y-6" style={{ height: 'calc(100vh - 280px)', paddingBottom: '80px' }}>
         {messages.length === 0 && (
           <div className="text-center text-slate-500 mt-8 md:mt-12">
             <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-blue-600 to-blue-700 rounded-full flex items-center justify-center mx-auto mb-4">

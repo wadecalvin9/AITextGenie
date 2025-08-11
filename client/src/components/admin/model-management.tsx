@@ -40,20 +40,7 @@ export default function ModelManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Check if user is admin
-  useEffect(() => {
-    if (!isLoading && (!isAuthenticated || (user as User)?.role !== 'admin')) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, isLoading, user, toast]);
+  // Note: Admin authentication is handled by App.tsx, no need to redirect here
 
   const { data: models = [], isLoading: modelsLoading } = useQuery({
     queryKey: ['/api/models'],

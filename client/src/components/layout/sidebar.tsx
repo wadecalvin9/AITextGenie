@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SidebarProps {
   currentView: string;
@@ -11,6 +12,7 @@ interface SidebarProps {
 
 export default function Sidebar({ currentView, onViewChange, user, isAdminView = false }: SidebarProps) {
   const [, setLocation] = useLocation();
+  const { signOut } = useAuth();
 
   const handleNavigation = (view: string) => {
     if (view.startsWith('admin-') && !isAdminView) {
@@ -166,7 +168,7 @@ export default function Sidebar({ currentView, onViewChange, user, isAdminView =
               variant="ghost"
               size="sm"
               className="text-slate-400 hover:text-slate-600 p-1"
-              onClick={() => window.location.href = '/api/logout'}
+              onClick={() => signOut()}
             >
               <i className="fas fa-sign-out-alt"></i>
             </Button>
@@ -178,7 +180,7 @@ export default function Sidebar({ currentView, onViewChange, user, isAdminView =
               variant="ghost"
               size="sm"
               className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-              onClick={() => window.location.href = '/api/login'}
+              onClick={() => {/* Auth handled by App.tsx */}}
             >
               Sign In
             </Button>

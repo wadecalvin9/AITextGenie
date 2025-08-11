@@ -145,9 +145,7 @@ export default function ChatInterface() {
           description: "You are logged out. Logging in again...",
           variant: "destructive",
         });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
+        // Authentication is handled by App.tsx
         return;
       }
       toast({

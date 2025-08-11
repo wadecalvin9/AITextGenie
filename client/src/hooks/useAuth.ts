@@ -37,11 +37,9 @@ export function useAuth() {
     // Listen for auth changes - but don't clear token if we have one saved
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.access_token) {
-        console.log('Supabase auth change - setting token');
         setToken(session.access_token);
         localStorage.setItem('supabase_token', session.access_token);
       } else if (event === 'SIGNED_OUT') {
-        console.log('Supabase signed out - clearing token');
         setToken(null);
         localStorage.removeItem('supabase_token');
         queryClient.clear(); // Clear all cached data on logout
@@ -52,10 +50,7 @@ export function useAuth() {
     // Check for existing token in localStorage on mount
     const savedToken = localStorage.getItem('supabase_token');
     if (savedToken) {
-      console.log('Found saved token, setting it');
       setToken(savedToken);
-    } else {
-      console.log('No saved token found');
     }
 
     return () => subscription.unsubscribe();
@@ -66,14 +61,12 @@ export function useAuth() {
     retry: false,
     enabled: !!token,
     queryFn: () => {
-      console.log('Fetching user with token:', !!token);
       return fetch('/api/auth/user', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       }).then(res => {
         if (!res.ok) {
-          console.log('User fetch failed:', res.status);
           throw new Error('Failed to fetch user');
         }
         return res.json();
@@ -152,7 +145,6 @@ export function useAuth() {
   });
 
   const isAuthenticated = !!user && !!token;
-  console.log('Auth hook state:', { hasUser: !!user, hasToken: !!token, isAuthenticated, isLoading });
 
   return {
     user: user as AuthUser | undefined,

@@ -13,20 +13,7 @@ export default function ChatHistory() {
   const queryClient = useQueryClient();
   const [selectedModelFilter, setSelectedModelFilter] = useState("all");
 
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, isLoading, toast]);
+  // Note: Authentication is handled by App.tsx, no need to redirect here
 
   const { data: sessions = [], isLoading: sessionsLoading } = useQuery<any[]>({
     queryKey: ['/api/chat/sessions'],

@@ -2,6 +2,8 @@
 
 This is a modern AI chat platform built with React, Express.js, and PostgreSQL. The application provides a multi-model AI chat experience where users can interact with various AI models through an intuitive web interface. It features user authentication via Replit's OAuth system, admin controls for model management, and comprehensive chat session management. The platform integrates with OpenRouter to access multiple AI models and maintains a clean, responsive design using shadcn/ui components.
 
+The platform now includes advanced features like rich text markdown responses, voice input capabilities, file upload functionality (coming soon), model comparison tools, and a fully responsive mobile-first design with bottom navigation bar for mobile devices.
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -14,6 +16,9 @@ Preferred communication style: Simple, everyday language.
 - **Routing**: Wouter for lightweight client-side routing
 - **State Management**: TanStack Query (React Query) for server state management and caching
 - **Forms**: React Hook Form with Zod for validation
+- **Rich Content**: ReactMarkdown with remark-gfm, remark-breaks, and rehype-highlight for AI response formatting
+- **Voice Input**: Web Speech API integration for hands-free chat interaction
+- **Responsive Design**: Mobile-first approach with collapsible sidebar and bottom navigation
 
 ## Backend Architecture
 - **Runtime**: Node.js with Express.js framework
@@ -41,6 +46,9 @@ Preferred communication style: Simple, everyday language.
 - **Model Management**: Admin-configurable AI models with cost tracking
 - **Chat Processing**: Streaming support for real-time chat responses
 - **Error Handling**: Graceful degradation for AI service failures
+- **Model Comparison**: Side-by-side AI model response comparison tool
+- **Voice Integration**: Speech-to-text for voice input with browser Speech API
+- **File Upload**: Drag-and-drop file upload component (AI analysis integration coming soon)
 
 # External Dependencies
 

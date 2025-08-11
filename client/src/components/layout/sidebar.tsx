@@ -25,7 +25,7 @@ export default function Sidebar({ currentView, onViewChange, user, isAdminView =
   const isActive = (view: string) => currentView === view;
 
   return (
-    <div className="w-64 bg-white border-r border-slate-200 flex flex-col">
+    <div className="w-64 bg-white border-r border-slate-200 flex flex-col h-full">
       {/* Logo & Brand */}
       <div className="p-6 border-b border-slate-200">
         <div className="flex items-center space-x-3">
@@ -72,6 +72,31 @@ export default function Sidebar({ currentView, onViewChange, user, isAdminView =
             >
               <i className="fas fa-brain w-5 text-center"></i>
               <span>Models</span>
+            </button>
+            <button
+              onClick={() => handleNavigation('compare')}
+              className={`nav-item flex items-center space-x-3 px-3 py-2 rounded-lg w-full text-left transition-colors ${
+                isActive('compare')
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <i className="fas fa-balance-scale w-5 text-center"></i>
+              <span>Compare Models</span>
+            </button>
+            <button
+              onClick={() => handleNavigation('files')}
+              className={`nav-item flex items-center space-x-3 px-3 py-2 rounded-lg w-full text-left transition-colors ${
+                isActive('files')
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <i className="fas fa-file-upload w-5 text-center"></i>
+              <span>File Upload</span>
+              <span className="ml-auto text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
+                Soon
+              </span>
             </button>
           </>
         ) : (

@@ -49,6 +49,13 @@ An AI chat website with OpenRouter integration, admin panel for model management
   - `server/routes.ts` (added `/api/settings/public` endpoint)
   - `client/src/components/chat/chat-interface.tsx` (fetch settings and use default model)
 
+### Model Deletion Foreign Key Issue
+- **Problem**: Failed to delete AI models due to foreign key constraint violation when models are referenced by chat sessions
+- **Fix**: Updated database schema to allow NULL model references and modified deletion logic to handle referenced models gracefully
+- **Locations**: 
+  - `shared/schema.ts` (added `onDelete: "set null"` to model foreign key)
+  - `server/storage.ts` (updated `deleteAiModel` to set chat sessions' modelId to null before deletion)
+
 ### UI Navigation Issues
 - **Problem**: Navigation state not properly reset when going back from admin to chat
 - **Fix**: Added proper page reload and state reset in "Back to Chat" button

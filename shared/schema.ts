@@ -57,7 +57,7 @@ export const chatSessions = pgTable("chat_sessions", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
   title: varchar("title").notNull(),
-  modelId: varchar("model_id").references(() => aiModels.id),
+  modelId: varchar("model_id").references(() => aiModels.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

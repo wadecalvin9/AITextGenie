@@ -108,8 +108,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteAiModel(id: string): Promise<boolean> {
-    const result = await db.delete(aiModels).where(eq(aiModels.id, id));
-    return result.rowCount > 0;
+    try {
+      // First, update any chat sessions that reference this model to set modelId to null
+      await db
+        .update(chatSessions)
+        .set({ modelId: null })
+        .where(eq(chatSessions.modelId, id));
+      
+      // Then delete the model
+      const result = await db.delete(aiModels).where(eq(aiModels.id, id));
+      return result.rowCount > 0;
+    } catch (error) {
+      console.error("Error deleting model:", error);
+      throw error;
+    }
   }
 
   // Chat Session operations

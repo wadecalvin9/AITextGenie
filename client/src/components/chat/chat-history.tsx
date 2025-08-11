@@ -72,7 +72,7 @@ export default function ChatHistory() {
 
   if (isLoading || sessionsLoading) {
     return (
-      <div className="flex-1 p-6">
+      <div className="flex-1 p-3 md:p-6 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           <div className="animate-pulse">
             <div className="h-8 bg-slate-200 rounded mb-6"></div>
@@ -92,13 +92,13 @@ export default function ChatHistory() {
   }
 
   return (
-    <div className="flex-1 p-6">
+    <div className="flex-1 p-3 md:p-6 overflow-y-auto">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-slate-900">Chat History</h2>
-          <div className="flex items-center space-x-3">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-4">
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900">Chat History</h2>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
             <Select defaultValue="all">
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -110,7 +110,7 @@ export default function ChatHistory() {
             </Select>
             <Button
               variant="outline"
-              className="text-red-600 border-red-200 hover:bg-red-50"
+              className="text-red-600 border-red-200 hover:bg-red-50 w-full sm:w-auto"
               onClick={() => {
                 if (confirm('Are you sure you want to clear all chat history?')) {
                   // TODO: Implement clear all history
@@ -121,7 +121,9 @@ export default function ChatHistory() {
                 }
               }}
             >
-              <i className="fas fa-trash mr-2"></i>Clear History
+              <i className="fas fa-trash mr-2"></i>
+              <span className="hidden sm:inline">Clear History</span>
+              <span className="sm:hidden">Clear</span>
             </Button>
           </div>
         </div>

@@ -35,11 +35,12 @@ An AI chat website with OpenRouter integration, admin panel for model management
   - `client/src/components/admin/user-management.tsx`
 
 ### Mobile UI Issues
-- **Problem**: Hamburger menu button not visible (white on white background), scrolling not working on admin pages
-- **Fix**: Enhanced hamburger button contrast with background color and border, added overflow-y-auto to all admin components
+- **Problem**: Hamburger menu button not visible (white on white background), scrolling not working on admin pages and chat history
+- **Fix**: Enhanced hamburger button contrast with background color and border, added overflow-y-auto to all admin components and chat history
 - **Locations**: 
   - `client/src/pages/home.tsx` and `client/src/pages/admin.tsx` (hamburger visibility)
-  - All admin components (scrolling fix)
+  - All admin components and `client/src/components/chat/chat-history.tsx` (scrolling fix)
+  - Made chat history responsive with flexible layouts
 
 ### UI Navigation Issues
 - **Problem**: Navigation state not properly reset when going back from admin to chat

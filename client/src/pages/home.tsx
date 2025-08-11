@@ -5,6 +5,7 @@ import ChatInterface from "@/components/chat/chat-interface";
 import ChatHistory from "@/components/chat/chat-history";
 import FileUpload from "@/components/features/file-upload";
 import ModelComparison from "@/components/features/model-comparison";
+import ModelsPage from "@/components/pages/models-page";
 
 type ViewType = 'chat' | 'history' | 'models' | 'files' | 'compare';
 
@@ -20,35 +21,7 @@ export default function Home() {
       case 'history':
         return <ChatHistory />;
       case 'models':
-        return (
-          <div className="flex-1 p-3 md:p-6 overflow-y-auto">
-            <div className="max-w-4xl mx-auto">
-              <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-4 md:mb-6">Available Models</h2>
-              <div className="bg-white rounded-lg border p-4 md:p-6 mb-6">
-                <p className="text-slate-600 mb-4">
-                  Model selection is available in the chat interface. Here's what's currently active:
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div className="p-4 bg-slate-50 rounded-lg">
-                    <h3 className="font-semibold text-slate-800">GPT-4o Mini</h3>
-                    <p className="text-sm text-slate-600">Fast and efficient OpenAI model</p>
-                    <div className="text-xs text-slate-500 mt-2">16K context • $0.15/1K tokens</div>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-lg">
-                    <h3 className="font-semibold text-slate-800">Claude 3.5 Sonnet</h3>
-                    <p className="text-sm text-slate-600">Powerful Anthropic model</p>
-                    <div className="text-xs text-slate-500 mt-2">200K context • $3.00/1K tokens</div>
-                  </div>
-                  <div className="p-4 bg-slate-50 rounded-lg">
-                    <h3 className="font-semibold text-slate-800">Gemini Pro 1.5</h3>
-                    <p className="text-sm text-slate-600">Google's advanced model</p>
-                    <div className="text-xs text-slate-500 mt-2">2M context • $1.25/1K tokens</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <ModelsPage />;
       case 'files':
         return (
           <div className="flex-1 p-3 md:p-6 overflow-y-auto">

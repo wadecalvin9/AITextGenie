@@ -92,8 +92,8 @@ export function useAuth() {
       return result;
     },
     onSuccess: (result) => {
-      // Force invalidation and refetch with new token
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      // Simple redirect - just reload the page
+      window.location.reload();
     }
   });
 

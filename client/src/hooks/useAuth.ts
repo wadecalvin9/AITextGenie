@@ -19,6 +19,13 @@ export function useAuth() {
 
   // Get session from Supabase on mount
   useEffect(() => {
+    // Check for existing token in localStorage first
+    const savedToken = localStorage.getItem('supabase_token');
+    if (savedToken) {
+      setToken(savedToken);
+      setAuthBlocked(false); // Ensure auth is not blocked for saved tokens
+    }
+
     // Check if Supabase is properly configured
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     if (!supabaseUrl || supabaseUrl === 'undefined') {
@@ -29,6 +36,7 @@ export function useAuth() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.access_token) {
         setToken(session.access_token);
+        setAuthBlocked(false);
         localStorage.setItem('supabase_token', session.access_token);
       }
     }).catch(error => {
@@ -39,20 +47,16 @@ export function useAuth() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.access_token) {
         setToken(session.access_token);
+        setAuthBlocked(false);
         localStorage.setItem('supabase_token', session.access_token);
       } else if (event === 'SIGNED_OUT') {
         setToken(null);
+        setAuthBlocked(false);
         localStorage.removeItem('supabase_token');
         queryClient.clear(); // Clear all cached data on logout
       }
       // Don't clear token on other events like TOKEN_REFRESHED that might not have session
     });
-
-    // Check for existing token in localStorage on mount
-    const savedToken = localStorage.getItem('supabase_token');
-    if (savedToken) {
-      setToken(savedToken);
-    }
 
     return () => subscription.unsubscribe();
   }, [queryClient]);
@@ -88,11 +92,14 @@ export function useAuth() {
         return res.json();
       } catch (error) {
         console.error('Auth error:', error);
-        // Clear invalid token and block auth on any error
-        setToken(null);
-        setAuthBlocked(true);
-        localStorage.removeItem('supabase_token');
-        queryClient.clear();
+        // Only clear token on network errors, not all errors
+        if (error instanceof TypeError) {
+          // Network error - clear token
+          setToken(null);
+          setAuthBlocked(true);
+          localStorage.removeItem('supabase_token');
+          queryClient.clear();
+        }
         return null;
       }
     },
@@ -119,6 +126,8 @@ export function useAuth() {
       return result;
     },
     onSuccess: (result) => {
+      // Reset auth block on successful sign in
+      setAuthBlocked(false);
       // Give a small delay to ensure token is saved before reload
       setTimeout(() => {
         window.location.reload();

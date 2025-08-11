@@ -89,7 +89,13 @@ export function useAuth() {
           throw new Error('Failed to fetch user');
         }
         
-        return res.json();
+        const text = await res.text();
+        try {
+          return JSON.parse(text);
+        } catch (parseError) {
+          console.error('Failed to parse JSON response:', text);
+          throw new Error('Invalid JSON response from server');
+        }
       } catch (error) {
         console.error('Auth error:', error);
         // Only clear token on network errors, not all errors
@@ -118,7 +124,14 @@ export function useAuth() {
         throw new Error(error.message || 'Sign in failed');
       }
       
-      const result = await response.json();
+      const text = await response.text();
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (parseError) {
+        console.error('Sign in - Failed to parse JSON response:', text);
+        throw new Error('Invalid response from server');
+      }
       if (result.session?.access_token) {
         setToken(result.session.access_token);
         localStorage.setItem('supabase_token', result.session.access_token);
@@ -149,11 +162,24 @@ export function useAuth() {
       });
       
       if (!response.ok) {
-        const error = await response.json();
+        const text = await response.text();
+        let error;
+        try {
+          error = JSON.parse(text);
+        } catch (parseError) {
+          console.error('Sign up error - Failed to parse JSON response:', text);
+          error = { message: 'Server error' };
+        }
         throw new Error(error.message || 'Sign up failed');
       }
       
-      return response.json();
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        console.error('Sign up - Failed to parse JSON response:', text);
+        throw new Error('Invalid response from server');
+      }
     }
   });
 
@@ -174,7 +200,13 @@ export function useAuth() {
       localStorage.removeItem('supabase_token');
       queryClient.clear();
       
-      return response.json();
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        console.error('Sign out - Failed to parse JSON response:', text);
+        return { message: 'Signed out successfully' };
+      }
     }
   });
 

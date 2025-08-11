@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import NotFound from "@/pages/not-found";
-import Landing from "@/pages/landing";
+import { AuthForm } from "@/components/auth/AuthForm";
 import Home from "@/pages/home";
 import Admin from "@/pages/admin";
 
@@ -28,7 +28,7 @@ function Router() {
   return (
     <Switch>
       {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
+        <Route path="/" component={AuthForm} />
       ) : (
         <>
           <Route path="/" component={Home} />

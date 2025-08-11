@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./supabaseAuth";
 import { OpenRouterService } from "./services/openrouter";
 import { 
   insertAiModelSchema,
@@ -49,7 +49,7 @@ const upload = multer({
 // Middleware to check admin role
 const isAdmin = async (req: any, res: any, next: any) => {
   try {
-    const userId = req.user?.claims?.sub;
+    const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ message: "Unauthorized" });
     }
@@ -72,17 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Auth routes are now handled in setupAuth function
 
   // AI Models routes
   app.get('/api/models', async (req, res) => {
@@ -155,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat Sessions routes
   app.get('/api/chat/sessions', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const sessions = await storage.getChatSessionsByUserId(userId);
       res.json(sessions);
     } catch (error) {
@@ -173,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user owns this session
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (session.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -195,7 +185,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user owns this session
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       if (session.userId !== userId) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -216,7 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/chat/sessions', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const sessionData = insertChatSessionSchema.parse({
         ...req.body,
         userId,
@@ -232,7 +222,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/chat/sessions/:id', isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       
       // Check if user owns this session
       const session = await storage.getChatSessionById(id);
@@ -275,8 +265,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let chatSessionId = sessionId;
       
       // For authenticated users, handle session management
-      if (!isGuest && req.isAuthenticated() && (req.user as any)?.claims?.sub) {
-        const userId = (req.user as any).claims.sub;
+      if (!isGuest && (req as any).user?.id) {
+        const userId = (req as any).user.id;
         
         if (!sessionId) {
           // Create new session
@@ -455,7 +445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/files/upload', isAuthenticated, upload.array('files', 5), async (req, res) => {
     try {
       const files = req.files as Express.Multer.File[];
-      const userId = req.user?.claims?.sub;
+      const userId = (req as any).user?.id;
       const sessionId = req.body.sessionId;
 
       if (!files || files.length === 0) {
@@ -511,7 +501,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's uploaded files
   app.get('/api/files', isAuthenticated, async (req, res) => {
     try {
-      const userId = req.user?.claims?.sub;
+      const userId = (req as any).user?.id;
       const files = await storage.getUploadedFilesByUserId(userId);
       res.json(files);
     } catch (error) {
@@ -536,7 +526,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/files/:id', isAuthenticated, async (req, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user?.claims?.sub;
+      const userId = (req as any).user?.id;
       
       const file = await storage.getUploadedFileById(id);
       if (!file) {

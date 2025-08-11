@@ -135,10 +135,10 @@ export default function Home() {
       <div className="md:hidden fixed top-0 left-0 right-0 z-30 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
         <button
           onClick={() => setIsMobileSidebarOpen(true)}
-          className="p-2 text-slate-600 hover:text-slate-900"
+          className="p-2 text-slate-700 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-md shadow-sm border border-slate-300"
           data-testid="button-mobile-menu"
         >
-          <i className="fas fa-bars text-lg"></i>
+          <i className="fas fa-bars text-lg text-slate-800"></i>
         </button>
         <h1 className="text-lg font-semibold text-slate-900">AI Platform</h1>
         <div className="w-10 h-10 flex items-center justify-center">

@@ -257,7 +257,7 @@ export default function ModelManagement() {
   }
 
   return (
-    <div className="flex-1 p-3 md:p-6">
+    <div className="flex-1 p-3 md:p-6 overflow-y-auto">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-4">
           <h2 className="text-xl md:text-2xl font-bold text-slate-900">Manage AI Models</h2>

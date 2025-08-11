@@ -161,7 +161,7 @@ export default function ApiSettings() {
   }
 
   return (
-    <div className="flex-1 p-3 md:p-6">
+    <div className="flex-1 p-3 md:p-6 overflow-y-auto">
       <div className="max-w-4xl mx-auto">
         <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-4 md:mb-6">API Settings</h2>
 

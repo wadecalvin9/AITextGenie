@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { useEffect } from "react";
+import type { User } from "@shared/schema";
 
 interface ModelFormData {
   name: string;
@@ -22,7 +23,10 @@ interface ModelFormData {
 
 export default function ModelManagement() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isOpenRouterDialogOpen, setIsOpenRouterDialogOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedOpenRouterModel, setSelectedOpenRouterModel] = useState<any>(null);
   const [formData, setFormData] = useState<ModelFormData>({
     name: "",
     provider: "",
@@ -38,7 +42,7 @@ export default function ModelManagement() {
 
   // Check if user is admin
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== 'admin')) {
+    if (!isLoading && (!isAuthenticated || (user as User)?.role !== 'admin')) {
       toast({
         title: "Unauthorized",
         description: "You are logged out. Logging in again...",
@@ -53,8 +57,21 @@ export default function ModelManagement() {
 
   const { data: models = [], isLoading: modelsLoading } = useQuery({
     queryKey: ['/api/models'],
-    enabled: isAuthenticated && user?.role === 'admin',
+    enabled: isAuthenticated && (user as User)?.role === 'admin',
   });
+
+  // Fetch OpenRouter models
+  const { data: openRouterModels = [], isLoading: openRouterLoading } = useQuery({
+    queryKey: ['/api/openrouter/models'],
+    enabled: isOpenRouterDialogOpen && isAuthenticated && (user as User)?.role === 'admin',
+    retry: false,
+  });
+
+  // Filter OpenRouter models based on search
+  const filteredOpenRouterModels = openRouterModels.filter((model: any) =>
+    model.id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    model.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const createModelMutation = useMutation({
     mutationFn: async (modelData: ModelFormData) => {
@@ -194,6 +211,26 @@ export default function ModelManagement() {
     }
   };
 
+  const handleSelectOpenRouterModel = (model: any) => {
+    setSelectedOpenRouterModel(model);
+    setFormData({
+      name: model.name || model.id,
+      provider: model.id.split('/')[0] || 'OpenRouter',
+      modelId: model.id,
+      contextLength: model.context_length || 4096,
+      costPer1kTokens: parseFloat(model.pricing?.prompt) || 0.03,
+      isActive: true,
+    });
+    setIsOpenRouterDialogOpen(false);
+    setIsAddDialogOpen(true);
+  };
+
+  const handleOpenRouterSearch = () => {
+    setSelectedOpenRouterModel(null);
+    setSearchQuery("");
+    setIsOpenRouterDialogOpen(true);
+  };
+
   if (isLoading || modelsLoading) {
     return (
       <div className="flex-1 p-6">
@@ -224,12 +261,16 @@ export default function ModelManagement() {
       <div className="max-w-6xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-slate-900">Manage AI Models</h2>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm}>
-                <i className="fas fa-plus mr-2"></i>Add Model
-              </Button>
-            </DialogTrigger>
+          <div className="flex space-x-3">
+            <Button onClick={handleOpenRouterSearch} variant="outline">
+              <i className="fas fa-search mr-2"></i>Browse OpenRouter
+            </Button>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={resetForm}>
+                  <i className="fas fa-plus mr-2"></i>Add Manually
+                </Button>
+              </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>{editingModel ? 'Edit Model' : 'Add New Model'}</DialogTitle>
@@ -321,8 +362,73 @@ export default function ModelManagement() {
                 </DialogFooter>
               </form>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          </div>
         </div>
+
+        {/* OpenRouter Model Search Dialog */}
+        <Dialog open={isOpenRouterDialogOpen} onOpenChange={setIsOpenRouterDialogOpen}>
+          <DialogContent className="sm:max-w-[600px] max-h-[600px]">
+            <DialogHeader>
+              <DialogTitle>Browse OpenRouter Models</DialogTitle>
+              <DialogDescription>
+                Search and select from available OpenRouter AI models.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <div className="mb-4">
+                <Input
+                  placeholder="Search models..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              
+              {openRouterLoading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-2 text-sm text-slate-600">Loading models...</p>
+                </div>
+              ) : (
+                <div className="max-h-[400px] overflow-y-auto space-y-2">
+                  {filteredOpenRouterModels.slice(0, 50).map((model: any) => (
+                    <div
+                      key={model.id}
+                      className="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer"
+                      onClick={() => handleSelectOpenRouterModel(model)}
+                    >
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-slate-900">{model.name || model.id}</h4>
+                        <p className="text-xs text-slate-500">{model.id}</p>
+                        <div className="flex space-x-4 text-xs text-slate-400 mt-1">
+                          {model.context_length && <span>Context: {model.context_length.toLocaleString()}</span>}
+                          {model.pricing?.prompt && <span>Price: ${model.pricing.prompt}/1K tokens</span>}
+                        </div>
+                      </div>
+                      <Button size="sm" variant="ghost">
+                        <i className="fas fa-plus"></i>
+                      </Button>
+                    </div>
+                  ))}
+                  
+                  {filteredOpenRouterModels.length === 0 && !openRouterLoading && (
+                    <div className="text-center py-8 text-slate-500">
+                      <i className="fas fa-search text-2xl mb-2"></i>
+                      <p>No models found matching your search.</p>
+                    </div>
+                  )}
+                  
+                  {filteredOpenRouterModels.length > 50 && (
+                    <div className="text-center py-4 text-sm text-slate-500">
+                      Showing first 50 results. Use search to narrow down.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Models Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

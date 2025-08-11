@@ -61,6 +61,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get OpenRouter models (Admin only)
+  app.get('/api/openrouter/models', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const apiKeySetting = await storage.getSystemSetting('openrouter_api_key');
+      if (!apiKeySetting?.value) {
+        return res.status(400).json({ message: "OpenRouter API key not configured" });
+      }
+
+      const models = await openRouterService.getAvailableModels(apiKeySetting.value);
+      res.json(models);
+    } catch (error) {
+      console.error("Error fetching OpenRouter models:", error);
+      res.status(500).json({ message: "Failed to fetch OpenRouter models" });
+    }
+  });
+
   app.post('/api/models', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const modelData = insertAiModelSchema.parse(req.body);
@@ -195,8 +211,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let chatSessionId = sessionId;
       
       // For authenticated users, handle session management
-      if (!isGuest && req.user?.claims?.sub) {
-        const userId = req.user.claims.sub;
+      if (!isGuest && req.isAuthenticated() && (req.user as any)?.claims?.sub) {
+        const userId = (req.user as any).claims.sub;
         
         if (!sessionId) {
           // Create new session
@@ -253,6 +269,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error processing chat message:", error);
       res.status(500).json({ message: "Failed to process message" });
+    }
+  });
+
+  // OpenRouter models endpoint
+  app.get('/api/openrouter/models', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const apiKeySetting = await storage.getSystemSetting('openrouter_api_key');
+      if (!apiKeySetting?.value) {
+        return res.status(400).json({ error: 'OpenRouter API key not configured' });
+      }
+      
+      const response = await fetch('https://openrouter.ai/api/v1/models', {
+        headers: {
+          'Authorization': `Bearer ${apiKeySetting.value}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch OpenRouter models');
+      }
+      
+      const data = await response.json();
+      res.json(data.data || []);
+    } catch (error) {
+      console.error('Error fetching OpenRouter models:', error);
+      res.status(500).json({ error: 'Failed to fetch models' });
     }
   });
 

@@ -141,12 +141,13 @@ export function useAuth() {
   });
 
   // Debug authentication state
-  console.log('Auth state:', { user, token, isLoading, isAuthenticated: !!user && !!token });
+  const isAuthenticated = !!user && !!token;
+  console.log('Auth state:', { user: !!user, token: !!token, isLoading, isAuthenticated });
 
   return {
     user: user as AuthUser | undefined,
     isLoading: isLoading || signInMutation.isPending,
-    isAuthenticated: !!user && !!token,
+    isAuthenticated,
     token,
     signIn: signInMutation.mutate,
     signUp: signUpMutation.mutate,

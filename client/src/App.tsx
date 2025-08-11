@@ -29,17 +29,20 @@ function Router() {
     );
   }
 
-  // Force re-render when authentication state changes by using key
+  // Force complete re-render when authentication state changes
+  if (!isAuthenticated) {
+    return (
+      <Switch>
+        <Route path="*" component={AuthForm} />
+      </Switch>
+    );
+  }
+
+  // User is authenticated, show the main app
   return (
-    <Switch key={isAuthenticated ? 'authenticated' : 'unauthenticated'}>
-      {!isAuthenticated ? (
-        <Route path="/" component={AuthForm} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          {user?.role === 'admin' && <Route path="/admin" component={Admin} />}
-        </>
-      )}
+    <Switch>
+      <Route path="/" component={Home} />
+      {user?.role === 'admin' && <Route path="/admin" component={Admin} />}
       <Route component={NotFound} />
     </Switch>
   );

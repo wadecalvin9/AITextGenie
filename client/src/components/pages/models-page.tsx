@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 interface AiModel {
   id: string;
@@ -15,9 +16,8 @@ export default function ModelsPage() {
   const { data: models = [], isLoading } = useQuery({
     queryKey: ['/api/models'],
     queryFn: async () => {
-      const res = await fetch('/api/models?active=true');
-      if (!res.ok) throw new Error('Failed to fetch models');
-      return res.json() as AiModel[];
+      const res = await apiRequest('GET', '/api/models?active=true');
+      return await res.json() as AiModel[];
     },
   });
 

@@ -1,5 +1,21 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Configure API base URL - defaults to relative URLs for same-origin deployment
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+function getApiUrl(path: string): string {
+  // If path already starts with http, use as-is (absolute URL)
+  if (path.startsWith('http')) return path;
+  
+  // If API_BASE_URL is set, prepend it (for external API)
+  if (API_BASE_URL) {
+    return `${API_BASE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+  }
+  
+  // Default: relative URL (same-origin)
+  return path;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     // Handle 401 errors by clearing invalid tokens
@@ -24,11 +40,12 @@ export async function apiRequest(
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, {
+  const fullUrl = getApiUrl(url);
+  const res = await fetch(fullUrl, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: API_BASE_URL ? "omit" : "include", // Use omit for external APIs
   });
 
   await throwIfResNotOk(res);
@@ -48,9 +65,10 @@ export const getQueryFn: <T>(options: {
       headers.Authorization = `Bearer ${token}`;
     }
 
-    const res = await fetch(queryKey.join("/") as string, {
+    const url = getApiUrl(queryKey.join("/") as string);
+    const res = await fetch(url, {
       headers,
-      credentials: "include",
+      credentials: API_BASE_URL ? "omit" : "include",
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

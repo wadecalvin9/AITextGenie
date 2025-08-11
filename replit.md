@@ -169,8 +169,15 @@ An AI chat website with OpenRouter integration, admin panel for model management
   - Frontend builds to `dist/public/` and gets served as static files
   - Backend builds to `dist/index.js` and runs as serverless function
   - Proper separation prevents server code from being served as webpage
-- **Location**: `vercel.json`
-- **Status**: Updated for Aug 2025 - ready for redeployment
+- **Final Solution**: Added configurable API base URL support to frontend
+- **Key Components Added**:
+  - `VITE_API_BASE_URL` environment variable support in `client/src/lib/queryClient.ts`
+  - Smart API URL resolution (relative for same-origin, absolute for external backends)
+  - Updated all API calls to use centralized `apiRequest` function
+  - Created `.env.example` with full configuration guide
+  - Built `VERCEL_DEPLOYMENT.md` with deployment strategies
+- **Deployment Strategy**: Frontend-only Vercel deployment with external backend (Railway/Render/Fly.io)
+- **Status**: Ready for deployment - supports both local development and production splits
 
 ### Centralized Configuration Management (Jan 11, 2025)
 - **Implementation**: Added comprehensive configuration management system for better maintainability

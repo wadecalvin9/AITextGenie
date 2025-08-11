@@ -75,29 +75,25 @@ export default function ChatInterface() {
   // Load session function
   const loadSession = async (sessionId: string) => {
     try {
-      const response = await fetch(`/api/chat/sessions/${sessionId}/messages`);
-      if (response.ok) {
-        const sessionData = await response.json();
+      const response = await apiRequest('GET', `/api/chat/sessions/${sessionId}/messages`);
+      const sessionData = await response.json();
         
-        // Ensure all messages have proper timestamp objects
-        const processedMessages = (sessionData.messages || []).map((msg: any) => ({
-          ...msg,
-          timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-        }));
-        
-        setMessages(processedMessages);
-        setCurrentSession(sessionId);
-        setSessionTitle(sessionData.title || "Restored Chat");
-        if (sessionData.modelId) {
-          setSelectedModel(sessionData.modelId);
-        }
-        toast({
-          title: "Session Loaded",
-          description: `Restored chat session: ${sessionData.title || "Unnamed Session"}`,
-        });
-      } else {
-        throw new Error("Failed to load session");
+      // Ensure all messages have proper timestamp objects
+      const processedMessages = (sessionData.messages || []).map((msg: any) => ({
+        ...msg,
+        timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+      }));
+      
+      setMessages(processedMessages);
+      setCurrentSession(sessionId);
+      setSessionTitle(sessionData.title || "Restored Chat");
+      if (sessionData.modelId) {
+        setSelectedModel(sessionData.modelId);
       }
+      toast({
+        title: "Session Loaded",
+        description: `Restored chat session: ${sessionData.title || "Unnamed Session"}`,
+      });
     } catch (error) {
       toast({
         title: "Error",
